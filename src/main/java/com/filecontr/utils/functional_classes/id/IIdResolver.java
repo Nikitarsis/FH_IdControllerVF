@@ -1,9 +1,8 @@
-package com.filecontr.utils.functional_classes.file_data_server;
+package com.filecontr.utils.functional_classes.id;
 
 import com.filecontr.utils.functional_classes.server_data.IServerData;
 
-public interface IFileServer {
+public interface IIdResolver {
   IServerData getServerDataFromId(Long id);
   Long getNextRandomId();
-  IServerData serverInfoById(Long id);
 }
