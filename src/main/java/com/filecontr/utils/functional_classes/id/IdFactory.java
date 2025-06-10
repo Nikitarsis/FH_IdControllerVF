@@ -1,21 +1,21 @@
 package com.filecontr.utils.functional_classes.id;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.filecontr.utils.adapters.logger.AdapterLoggerFactory;
 import com.filecontr.utils.adapters.logger.ILogger;
-import com.filecontr.utils.functional_classes.file_data_server.IFileServer;
 
-@Component
+@Service
 public class IdFactory {
-  @Autowired
-  private IFileServer server;
-  private ILogger logger = AdapterLoggerFactory.getLogger(IdFactory.class);
+  private final IIdResolver server;
+  private final ILogger logger;
 
-  private IdFactory(){}
-  private IdFactory(IFileServer server) {
+  @Autowired
+  public IdFactory(IIdResolver server) {
     this.server = server;
+    logger = AdapterLoggerFactory.getLogger(this.getClass());
+    logger.info("Created");
   }
   public IIdentificator getNextId() {
     Long id = server.getNextRandomId();
@@ -23,7 +23,7 @@ public class IdFactory {
     return new DefaultIdentificator(id, server::getServerDataFromId);
   }
 
-  public static IdFactory getIdFactory(IFileServer server) {
+  public static IdFactory getIdFactory(IIdResolver server) {
     return new IdFactory(server);
   }
 }
