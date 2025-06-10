@@ -1,0 +1,31 @@
+package com.filecontr.functional_classes.id;
+
+import java.util.function.Function;
+
+import com.filecontr.functional_classes.server_data.IServerData;
+
+class DefaultIdentificator implements IIdentificator {
+
+  private final Long innerId;
+  private final Function<Long, IServerData> dataServerCallBack;
+
+  @Override
+  public int compareTo(IIdentificator arg0) {
+    return innerId.compareTo(arg0.getLongValue());
+  }
+
+  @Override
+  public Long getLongValue() {
+    return innerId;
+  }
+
+  @Override
+  public IServerData getData() {
+    return dataServerCallBack.apply(innerId);
+  }
+
+  protected DefaultIdentificator(Long innerId, Function<Long, IServerData> callback) {
+    this.innerId = innerId;
+    this.dataServerCallBack = callback;
+  }
+}
