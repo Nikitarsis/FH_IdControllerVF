@@ -1,11 +1,11 @@
-package com.filecontr.functional_classes.id;
+package com.filecontr.utils.functional_classes.id;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.filecontr.adapters.logger.AdapterLoggerFactory;
-import com.filecontr.adapters.logger.ILogger;
-import com.filecontr.functional_classes.file_data_server.IFileServer;
+import com.filecontr.utils.adapters.logger.AdapterLoggerFactory;
+import com.filecontr.utils.adapters.logger.ILogger;
+import com.filecontr.utils.functional_classes.file_data_server.IFileServer;
 
 @Component
 public class IdFactory {

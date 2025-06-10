@@ -1,8 +1,8 @@
-package com.filecontr.functional_classes.id;
+package com.filecontr.utils.functional_classes.id;
 
 import java.util.function.Function;
 
-import com.filecontr.functional_classes.server_data.IServerData;
+import com.filecontr.utils.functional_classes.server_data.IServerData;
 
 class DefaultIdentificator implements IIdentificator {
 

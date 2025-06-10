@@ -1,4 +1,4 @@
-package com.filecontr.adapters.logger;
+package com.filecontr.utils.adapters.logger;
 
 public interface ILogger {
   void trace(String msg);

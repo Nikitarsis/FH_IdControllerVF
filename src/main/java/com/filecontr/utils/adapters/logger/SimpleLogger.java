@@ -1,4 +1,4 @@
-package com.filecontr.adapters.logger;
+package com.filecontr.utils.adapters.logger;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
