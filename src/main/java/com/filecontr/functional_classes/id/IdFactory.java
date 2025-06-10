@@ -3,6 +3,7 @@ package com.filecontr.functional_classes.id;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.filecontr.adapters.logger.AdapterLoggerFactory;
 import com.filecontr.adapters.logger.ILogger;
 import com.filecontr.functional_classes.file_data_server.IFileServer;
 
@@ -10,8 +11,7 @@ import com.filecontr.functional_classes.file_data_server.IFileServer;
 public class IdFactory {
   @Autowired
   private IFileServer server;
-  @Autowired
-  private ILogger logger;
+  private ILogger logger = AdapterLoggerFactory.getLogger(IdFactory.class);
 
   private IdFactory(){}
   private IdFactory(IFileServer server) {
