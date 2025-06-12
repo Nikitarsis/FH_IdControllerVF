@@ -11,11 +11,11 @@ class DefaultIdentificator implements IIdentificator {
 
   @Override
   public int compareTo(IIdentificator arg0) {
-    return innerId.compareTo(arg0.getLongValue());
+    return innerId.compareTo(arg0.toLong());
   }
 
   @Override
-  public Long getLongValue() {
+  public Long toLong() {
     return innerId;
   }
 
