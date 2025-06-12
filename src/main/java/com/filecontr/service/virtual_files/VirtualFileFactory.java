@@ -1,4 +1,4 @@
-package com.filecontr.repository.virtual_files;
+package com.filecontr.service.virtual_files;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
