@@ -1,7 +1,6 @@
 package com.filecontr.service.virtual_files;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -19,15 +18,24 @@ import com.filecontr.utils.functional_classes.pathes.server_path.ServerPath;
 
 @Service
 public class VirtualFileFactory {
-  private final Deque<Function<IIdentificator, Optional<IContent>>> finderFunctions = new ArrayDeque<Function<IIdentificator, Optional<IContent>>>(); 
+  private final ArrayList<Function<IIdentificator, Optional<IContent>>> searcherFunctions = new ArrayList<Function<IIdentificator, Optional<IContent>>>(); 
   @Autowired IdFactory idProducer;
   ILogger logger = AdapterLoggerFactory.getLogger(this.getClass());
 
+  public int addFinder(Function<IIdentificator, Optional<IContent>> searcher) {
+    searcherFunctions.add(searcher);
+    return searcherFunctions.size()-1;
+  }
+
+  public void removeFinder(int id) {
+    searcherFunctions.remove(id);
+  }
+
   public Optional<IVirtualFile> getVirtualFileById(IIdentificator id) {
-    for (var finder : finderFunctions) {
+    for (var searcher : searcherFunctions) {
       Optional<IContent> content = Optional.empty();
       try {
-        content = finder.apply(id);
+        content = searcher.apply(id);
       } catch (Exception e) {
         logger.warn("Unexpected exception catched: " + e.getMessage());
       }
