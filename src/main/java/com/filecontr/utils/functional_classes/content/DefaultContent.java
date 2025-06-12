@@ -7,7 +7,7 @@ import com.filecontr.utils.functional_classes.pathes.server_path.ServerPath;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public class DefaultContent implements IContent {
+class DefaultContent implements IContent {
   HashMap<Long, String> relations;
   Long creationTime;
   ServerPath path;
