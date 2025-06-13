@@ -22,12 +22,12 @@ public class VirtualFileFactory {
   @Autowired IdFactory idProducer;
   ILogger logger = AdapterLoggerFactory.getLogger(this.getClass());
 
-  public int addFinder(Function<IIdentificator, Optional<IContent>> searcher) {
+  public int addSercher(Function<IIdentificator, Optional<IContent>> searcher) {
     searcherFunctions.add(searcher);
     return searcherFunctions.size()-1;
   }
 
-  public void removeFinder(int id) {
+  public void removeSearcher(int id) {
     searcherFunctions.remove(id);
   }
 
