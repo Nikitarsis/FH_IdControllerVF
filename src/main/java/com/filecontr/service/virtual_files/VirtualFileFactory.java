@@ -3,24 +3,29 @@ package com.filecontr.service.virtual_files;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.filecontr.utils.adapters.logger.AdapterLoggerFactory;
 import com.filecontr.utils.adapters.logger.ILogger;
 import com.filecontr.utils.functional_classes.content.ContentFactory;
 import com.filecontr.utils.functional_classes.content.IContent;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
-import com.filecontr.utils.functional_classes.id.IdFactory;
 import com.filecontr.utils.functional_classes.pathes.file_path.FilePath;
 import com.filecontr.utils.functional_classes.pathes.server_path.ServerPath;
 
-@Service
 public class VirtualFileFactory {
-  private final ArrayList<Function<IIdentificator, Optional<IContent>>> searcherFunctions = new ArrayList<Function<IIdentificator, Optional<IContent>>>(); 
-  @Autowired IdFactory idProducer;
-  ILogger logger = AdapterLoggerFactory.getLogger(this.getClass());
+  private final ArrayList<Function<IIdentificator, Optional<IContent>>> searcherFunctions; 
+  Supplier<IIdentificator> idSupplier;
+  ILogger logger;
+
+  public VirtualFileFactory(
+    Supplier<IIdentificator> idSupplier,
+    Function<Class<?>, ILogger> loggerProducer,
+    ArrayList<Function<IIdentificator, Optional<IContent>>> searcherFunctions
+  ) {
+    this.logger = loggerProducer.apply(this.getClass());
+    this.idSupplier = idSupplier;
+    this.searcherFunctions = searcherFunctions;
+  }
 
   public int addSercher(Function<IIdentificator, Optional<IContent>> searcher) {
     searcherFunctions.add(searcher);
@@ -50,7 +55,7 @@ public class VirtualFileFactory {
 
   public Optional<IVirtualFile> createNewFileRoot(Optional<String> type) {
     try {
-      var id = idProducer.getNextId();
+      var id = idSupplier.get();
       String relativePath;
       FilePath filePath;
       if (type.isPresent()) {
@@ -75,7 +80,7 @@ public class VirtualFileFactory {
 
   public Optional<IVirtualFile> createNewFileDefault(String directoryPath, Optional<String> type) {
     try {
-      var id = idProducer.getNextId();
+      var id = idSupplier.get();
       var relativePath = String.format("%s%d", directoryPath, id.toLong());
       FilePath filePath;
       if (type.isPresent()) {
@@ -98,7 +103,7 @@ public class VirtualFileFactory {
 
   public Optional<IVirtualFile> createNewFilePseudonym(String relativePath, String type) {
     try {
-      var id = idProducer.getNextId();
+      var id = idSupplier.get();
       var path = new ServerPath(
         id.getData().getURL(),
         FilePath.createFilePathWithType(relativePath, type)
