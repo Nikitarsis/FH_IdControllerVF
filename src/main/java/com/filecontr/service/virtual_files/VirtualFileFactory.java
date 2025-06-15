@@ -27,7 +27,7 @@ public class VirtualFileFactory {
     this.searcherFunctions = searcherFunctions;
   }
 
-  public int addSercher(Function<IIdentificator, Optional<IContent>> searcher) {
+  public int addSearcher(Function<IIdentificator, Optional<IContent>> searcher) {
     searcherFunctions.add(searcher);
     return searcherFunctions.size()-1;
   }
@@ -45,11 +45,11 @@ public class VirtualFileFactory {
         logger.warn("Unexpected exception catched: " + e.getMessage());
       }
       if (content.isPresent()) {
-        logger.trace(String.format("File ID %d found", id.toLong()));
+        logger.trace(String.format("File ID %s found", Long.toHexString(id.toLong())));
         return Optional.of(new SimpleVirtualFile(id, content.get()));
       }
     }
-    logger.debug(String.format("File ID %d not found"));
+    logger.debug(String.format("File ID %s not found", Long.toHexString(id.toLong())));
     return Optional.empty();
   }
 
@@ -101,12 +101,18 @@ public class VirtualFileFactory {
     }
   }
 
-  public Optional<IVirtualFile> createNewFilePseudonym(String relativePath, String type) {
+  public Optional<IVirtualFile> createNewFilePseudonym(String relativePath, Optional<String> type) {
     try {
       var id = idSupplier.get();
+      FilePath filePath;
+      if (type.isPresent()) {
+        filePath = FilePath.createFilePathWithType(relativePath, type.get());
+      } else {
+        filePath = FilePath.createSimpleFilePath(relativePath);
+      }
       var path = new ServerPath(
         id.getData().getURL(),
-        FilePath.createFilePathWithType(relativePath, type)
+        filePath
       );
       var content = ContentFactory.createEmptyContent(path);
       logger.debug(String.format("File with ID %d created", id.toLong()));
