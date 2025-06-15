@@ -12,4 +12,8 @@ public record ServerPath(
   public static ServerPath createSimpleServerPath(String URL, String filePath) {
     return new ServerPath(URL, FilePath.createSimpleFilePath(filePath));
   }
+
+  public static ServerPath createTestServerPath() {
+    return new ServerPath("www.TestUrl.test/a/b", FilePath.createTestFilePath());
+  }
 }

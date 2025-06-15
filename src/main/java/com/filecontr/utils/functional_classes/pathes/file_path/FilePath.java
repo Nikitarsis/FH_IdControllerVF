@@ -17,4 +17,8 @@ public record FilePath(
   public static FilePath createFilePathWithType(String relativePath, String type){
     return new FilePath(Optional.of(type), relativePath, Optional.empty());
   }
+
+  public static FilePath createTestFilePath() {
+    return new FilePath(Optional.of("test"), "./testpath/", Optional.empty());
+  }
 }
