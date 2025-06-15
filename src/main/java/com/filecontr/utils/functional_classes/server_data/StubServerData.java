@@ -4,8 +4,7 @@ public class StubServerData implements IServerData {
 
   @Override
   public String getURL() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'getURL'");
+    return "www.testURL.test/a/b";
   }
   
 }
