@@ -1,29 +1,43 @@
 package com.filecontr.utils.functional_classes.id;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import java.util.function.Function;
 
 import com.filecontr.utils.adapters.logger.AdapterLoggerFactory;
 import com.filecontr.utils.adapters.logger.ILogger;
+import com.filecontr.utils.functional_classes.server_data.IServerData;
+import com.filecontr.utils.functional_classes.server_data.StubServerData;
 
-@Service
 public class IdFactory {
   private final IIdResolver server;
   private final ILogger logger;
 
-  @Autowired
-  public IdFactory(IIdResolver server) {
+  public IdFactory(IIdResolver server, Function<Class<?>, ILogger> loggerProducer) {
     this.server = server;
-    logger = AdapterLoggerFactory.getLogger(this.getClass());
+    logger = loggerProducer.apply(this.getClass());
     logger.info("Created");
   }
+
   public IIdentificator getNextId() {
     Long id = server.getNextRandomId();
-    logger.trace("New Id " + id);
+    logger.trace("New Id: " + Long.toHexString(id));
     return new DefaultIdentificator(id, server::getServerDataFromId);
   }
 
-  public static IdFactory getIdFactory(IIdResolver server) {
-    return new IdFactory(server);
+  public static IdFactory createTestFactory() {
+    var testServer = new IIdResolver() {
+      private Long id = 0l;
+      
+      @Override
+      public IServerData getServerDataFromId(Long id) {
+        return new StubServerData();
+      }
+
+      @Override
+      public Long getNextRandomId() {
+        id++;
+        return id - 1;
+      }
+    };
+    return new IdFactory(testServer, AdapterLoggerFactory::getTestLogger);
   }
 }
