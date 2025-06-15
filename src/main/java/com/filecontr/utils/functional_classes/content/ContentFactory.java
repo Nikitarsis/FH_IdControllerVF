@@ -10,4 +10,8 @@ public class ContentFactory {
   public static IContent createEmptyContent(ServerPath path) {
     return createContent(System.currentTimeMillis(), path);
   }
+
+  public static IContent createTestContent() {
+    return createContent(2453l, ServerPath.createTestServerPath());
+  }
 }
