@@ -1,0 +1,2 @@
+GET_VF_FILE--SELECT idr.level, idr.childId, idr.parentId, idd.relativePath, idd.type, ctt.creationTime FROM IdRelations AS idr JOIN IdData AS idd ON idr.childId = idd.id JOIN CreationTimeTable AS ctt ON idr.child_id = ctt.id WHERE idr.basicId = (SELECT basicId FROM IdRelations WHERE childId = :id) ORDER BY idr.level ASC;
+UPDATE_VF_FILE--
