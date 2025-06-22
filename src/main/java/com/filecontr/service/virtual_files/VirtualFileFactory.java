@@ -65,11 +65,10 @@ public class VirtualFileFactory {
         relativePath = String.format("./%s", Long.toHexString(id.toLong()));
         filePath = FilePath.createSimpleFilePath(relativePath);
       }
-      var path = new ServerPath(
-        id.getData().getURL(),
-        filePath
+      var serverPath = new ServerPath(
+        id.getData().getURL()
       );
-      var content = ContentFactory.createEmptyContent(path);
+      var content = ContentFactory.createEmptyContent(filePath, serverPath);
       logger.debug(String.format("File with ID %d created", id.toLong()));
       return Optional.of(new SimpleVirtualFile(id, content));
     } catch (Exception e) {
@@ -88,11 +87,10 @@ public class VirtualFileFactory {
       } else {
         filePath = FilePath.createSimpleFilePath(relativePath);
       }
-      var path = new ServerPath(
-        id.getData().getURL(),
-        filePath
+      var serverPath = new ServerPath(
+        id.getData().getURL()
       );
-      var content = ContentFactory.createEmptyContent(path);
+      var content = ContentFactory.createEmptyContent(filePath, serverPath);
       logger.debug(String.format("File with ID %d created", id.toLong()));
       return Optional.of(new SimpleVirtualFile(id, content));
     } catch (Exception e) {
@@ -110,11 +108,10 @@ public class VirtualFileFactory {
       } else {
         filePath = FilePath.createSimpleFilePath(relativePath);
       }
-      var path = new ServerPath(
-        id.getData().getURL(),
-        filePath
+      var serverPath = new ServerPath(
+        id.getData().getURL()
       );
-      var content = ContentFactory.createEmptyContent(path);
+      var content = ContentFactory.createEmptyContent(filePath, serverPath);
       logger.debug(String.format("File with ID %d created", id.toLong()));
       return Optional.of(new SimpleVirtualFile(id, content));
     } catch (Exception e) {
