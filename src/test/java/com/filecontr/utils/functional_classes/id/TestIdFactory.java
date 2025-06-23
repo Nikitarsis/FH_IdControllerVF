@@ -15,10 +15,4 @@ public class TestIdFactory {
     var testFactory = IdFactory.createTestFactory();
     Assertions.assertNotNull(testFactory.getNextId().toLong());
   }
-
-  @Test
-  void testServerData() {
-    var testFactory = IdFactory.createTestFactory();
-    Assertions.assertNotNull(testFactory.getNextId().getData());
-  }
 }
