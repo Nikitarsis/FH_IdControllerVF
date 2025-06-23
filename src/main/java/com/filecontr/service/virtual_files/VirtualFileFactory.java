@@ -10,7 +10,6 @@ import com.filecontr.utils.functional_classes.content.ContentFactory;
 import com.filecontr.utils.functional_classes.content.IContent;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
 import com.filecontr.utils.functional_classes.pathes.file_path.FilePath;
-import com.filecontr.utils.functional_classes.pathes.server_path.ServerPath;
 
 public class VirtualFileFactory {
   private final ArrayList<Function<IIdentificator, Optional<IContent>>> searcherFunctions; 
@@ -65,10 +64,7 @@ public class VirtualFileFactory {
         relativePath = String.format("./%s", Long.toHexString(id.toLong()));
         filePath = FilePath.createSimpleFilePath(relativePath);
       }
-      var serverPath = new ServerPath(
-        id.getData().getURL()
-      );
-      var content = ContentFactory.createEmptyContent(filePath, serverPath);
+      var content = ContentFactory.createEmptyContent(filePath);
       logger.debug(String.format("File with ID %d created", id.toLong()));
       return Optional.of(new SimpleVirtualFile(id, content));
     } catch (Exception e) {
@@ -87,10 +83,7 @@ public class VirtualFileFactory {
       } else {
         filePath = FilePath.createSimpleFilePath(relativePath);
       }
-      var serverPath = new ServerPath(
-        id.getData().getURL()
-      );
-      var content = ContentFactory.createEmptyContent(filePath, serverPath);
+      var content = ContentFactory.createEmptyContent(filePath);
       logger.debug(String.format("File with ID %d created", id.toLong()));
       return Optional.of(new SimpleVirtualFile(id, content));
     } catch (Exception e) {
@@ -108,10 +101,7 @@ public class VirtualFileFactory {
       } else {
         filePath = FilePath.createSimpleFilePath(relativePath);
       }
-      var serverPath = new ServerPath(
-        id.getData().getURL()
-      );
-      var content = ContentFactory.createEmptyContent(filePath, serverPath);
+      var content = ContentFactory.createEmptyContent(filePath);
       logger.debug(String.format("File with ID %d created", id.toLong()));
       return Optional.of(new SimpleVirtualFile(id, content));
     } catch (Exception e) {
