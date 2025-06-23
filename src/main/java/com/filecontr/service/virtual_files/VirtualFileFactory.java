@@ -45,7 +45,7 @@ public class VirtualFileFactory {
       }
       if (content.isPresent()) {
         logger.trace(String.format("File ID %s found", Long.toHexString(id.toLong())));
-        return Optional.of(new SimpleVirtualFile(id, content.get()));
+        return Optional.of(new SimpleVirtualFile(id, Optional.empty(), content.get()));
       }
     }
     logger.debug(String.format("File ID %s not found", Long.toHexString(id.toLong())));
@@ -66,14 +66,14 @@ public class VirtualFileFactory {
       }
       var content = ContentFactory.createEmptyContent(filePath);
       logger.debug(String.format("File with ID %d created", id.toLong()));
-      return Optional.of(new SimpleVirtualFile(id, content));
+      return Optional.of(new SimpleVirtualFile(id, Optional.empty(), content));
     } catch (Exception e) {
       logger.warn(String.format("File with ID %d wasn't created. Exception: %s", e.getMessage()));
       return Optional.empty();
     }
   }
 
-  public Optional<IVirtualFile> createNewFileDefault(String directoryPath, Optional<String> type) {
+  public Optional<IVirtualFile> createNewFileDefault(String directoryPath, Optional<IIdentificator> parentId, Optional<String> type) {
     try {
       var id = idSupplier.get();
       var relativePath = String.format("%s%d", directoryPath, id.toLong());
@@ -85,14 +85,14 @@ public class VirtualFileFactory {
       }
       var content = ContentFactory.createEmptyContent(filePath);
       logger.debug(String.format("File with ID %d created", id.toLong()));
-      return Optional.of(new SimpleVirtualFile(id, content));
+      return Optional.of(new SimpleVirtualFile(id, parentId, content));
     } catch (Exception e) {
       logger.warn(String.format("File with ID %d wasn't created. Exception: %s", e.getMessage()));
       return Optional.empty();
     }
   }
 
-  public Optional<IVirtualFile> createNewFilePseudonym(String relativePath, Optional<String> type) {
+  public Optional<IVirtualFile> createNewFilePseudonym(String relativePath, Optional<IIdentificator> parentId, Optional<String> type) {
     try {
       var id = idSupplier.get();
       FilePath filePath;
@@ -103,7 +103,7 @@ public class VirtualFileFactory {
       }
       var content = ContentFactory.createEmptyContent(filePath);
       logger.debug(String.format("File with ID %d created", id.toLong()));
-      return Optional.of(new SimpleVirtualFile(id, content));
+      return Optional.of(new SimpleVirtualFile(id, parentId, content));
     } catch (Exception e) {
       logger.warn(String.format("File with ID %d wasn't created. Exception: %s", e.getMessage()));
       return Optional.empty();
