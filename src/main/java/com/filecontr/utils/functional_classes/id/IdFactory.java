@@ -4,8 +4,6 @@ import java.util.function.Function;
 
 import com.filecontr.utils.adapters.logger.AdapterLoggerFactory;
 import com.filecontr.utils.adapters.logger.ILogger;
-import com.filecontr.utils.functional_classes.server_data.IServerData;
-import com.filecontr.utils.functional_classes.server_data.StubServerData;
 
 public class IdFactory {
   private final IIdResolver server;
@@ -20,18 +18,13 @@ public class IdFactory {
   public IIdentificator getNextId() {
     Long id = server.getNextRandomId();
     logger.trace("New Id: " + Long.toHexString(id));
-    return new DefaultIdentificator(id, server::getServerDataFromId);
+    return new DefaultIdentificator(id);
   }
 
   public static IdFactory createTestFactory() {
     var testServer = new IIdResolver() {
       private Long id = 0l;
       
-      @Override
-      public IServerData getServerDataFromId(Long id) {
-        return new StubServerData();
-      }
-
       @Override
       public Long getNextRandomId() {
         id++;
