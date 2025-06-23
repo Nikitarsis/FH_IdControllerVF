@@ -1,2 +1,5 @@
-GET_VF_FILE--SELECT idd.id, idd.relativePath, idd.type, ctt.creationType FROM IdData AS idd JOIN CreationTimeTable AS ctt ON idd.id = ctt.id WHERE idd.id IN (:id);
+GET_VIRTUAL_FILE--SELECT * FROM IdData WHERE id IN (:id);
+ADD_VIRTUAL_FILE--BEGIN; INSERT INTO IdData (id, relativePath, type, creationTime) VALUES :valuesProperties; INSERT INTO IdRelations (childId, parentId) VALUES :valuesRelations COMMIT;
+UPDATE_VIRTUAL_FILE--BEGIN; UPDATE IdData SET relativePath = :valuePath, type = :valueType, creationTime = :valueTime WHERE id = :id; UPDATE IdRelations SET parentId = :valueParent WHERE id = :id COMMIT;
+DELETE_VIRTUAL_FILE--BEGIN; DELETE FROM IdData WHERE id IN (:id); DELETE FROM IdRelations WHERE childId IN (:id) COMMIT;
 GET_RELATIONS--SELECT * FROM IdRelations;
