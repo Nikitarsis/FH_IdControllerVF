@@ -87,22 +87,4 @@ public class VirtualFileFactory {
       return Optional.empty();
     }
   }
-
-  public Optional<IVirtualFile> createNewFilePseudonym(String relativePath, Optional<IIdentificator> parentId, Optional<String> type) {
-    try {
-      var id = idSupplier.get();
-      FileData fileData;
-      if (type.isPresent()) {
-        fileData = FileData.createFileDataWithType(type.get());
-      } else {
-        fileData = FileData.createSimpleFileData();
-      }
-      var content = ContentFactory.createEmptyContent(fileData);
-      logger.debug(String.format("File with ID %d created", id.toLong()));
-      return Optional.of(new SimpleVirtualFile(id, parentId, content));
-    } catch (Exception e) {
-      logger.warn(String.format("File with ID %d wasn't created. Exception: %s", e.getMessage()));
-      return Optional.empty();
-    }
-  }
 }
