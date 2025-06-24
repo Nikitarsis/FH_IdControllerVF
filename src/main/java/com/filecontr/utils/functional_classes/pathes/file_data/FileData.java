@@ -19,6 +19,10 @@ public record FileData(
     return new FileData(Optional.of(type), Optional.empty());
   }
 
+  public static FileData createFileDataFull(Optional<String> type, Optional<IIdentificator> id) {
+    return new FileData(type, id);
+  }
+
   public static FileData createTestFileData() {
     return new FileData(Optional.of("test"), Optional.empty());
   }
