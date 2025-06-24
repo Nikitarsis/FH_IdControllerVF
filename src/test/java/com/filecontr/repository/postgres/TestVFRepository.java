@@ -96,7 +96,7 @@ public class TestVFRepository {
         Arrays.stream(vf).map(a -> String.format(
           "(%d, %d)",
           a.getId().toLong(),
-          a.getParentId().isPresent()? a.getParentId().get().toLong() : a.getId().toLong()
+          a.getContent().getFileData().parentId().isPresent()? a.getContent().getFileData().parentId().get().toLong() : a.getId().toLong()
           )
         )
         .collect(Collectors.joining(", "))
