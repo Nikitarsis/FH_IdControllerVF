@@ -5,10 +5,13 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+
 import com.filecontr.utils.adapters.logger.ILogger;
 import com.filecontr.utils.functional_classes.content.ContentFactory;
 import com.filecontr.utils.functional_classes.content.IContent;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
+import com.filecontr.utils.functional_classes.id.IdFactory;
 import com.filecontr.utils.functional_classes.pathes.file_data.FileData;
 import com.google.gson.Gson;
 
@@ -36,11 +39,11 @@ public class VirtualFileFactory {
     };
   }
 
-  public String toJson(IVirtualFile virtualFile) {
+  public String processVirtualFileToJson(IVirtualFile virtualFile) {
     return this.serilizator.apply(virtualFile);
   }
 
-  public IVirtualFile fromJson(String json) {
+  public IVirtualFile getVirtualFileFromJson(String json) {
     return this.deserializator.apply(json);
   }
 
@@ -51,6 +54,35 @@ public class VirtualFileFactory {
 
   public void removeSearcher(int id) {
     searcherFunctions.remove(id);
+  }
+
+  public Optional<IVirtualFile[]> getVirtualFileFromSql(SqlRowSet sqlSet) {
+    ArrayList<IVirtualFile> array = new ArrayList<>();
+    logger.debug("Process SQL request");
+    while (sqlSet.next()) {
+      var rawId = sqlSet.getLong("id");
+      var rawParentId = sqlSet.getLong("parentId");
+      var rawCreationTime = sqlSet.getLong("creationTime");
+      var rawType = sqlSet.getString("type");
+      
+      Optional<IIdentificator> parentId = Optional.empty();
+      if (rawId != rawParentId) {
+        parentId = Optional.of(IdFactory.createIdFromLong(rawParentId));
+      }
+      Optional<String> type = Optional.empty();
+      if (!rawType.equals("/NONE")) {
+        type = Optional.of(rawType);
+      }
+      var fileData = new FileData(type, parentId);
+      var content = ContentFactory.createContent(rawCreationTime, fileData);
+      var id = IdFactory.createIdFromLong(rawId);
+      array.add(new SimpleVirtualFile(id, content));
+    }
+    if (array.size() == 0) {
+      return Optional.empty();
+    }
+    var ret = new IVirtualFile[array.size()];
+    return Optional.of(array.toArray(ret));
   }
 
   public Optional<IVirtualFile> getVirtualFileById(IIdentificator id) {
