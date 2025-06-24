@@ -10,20 +10,38 @@ import com.filecontr.utils.functional_classes.content.ContentFactory;
 import com.filecontr.utils.functional_classes.content.IContent;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
 import com.filecontr.utils.functional_classes.pathes.file_data.FileData;
+import com.google.gson.Gson;
 
 public class VirtualFileFactory {
   private final ArrayList<Function<IIdentificator, Optional<IContent>>> searcherFunctions; 
   Supplier<IIdentificator> idSupplier;
   ILogger logger;
+  Function<String, IVirtualFile> deserializator;
+  Function<IVirtualFile, String> serilizator;
 
   public VirtualFileFactory(
     Supplier<IIdentificator> idSupplier,
     Function<Class<?>, ILogger> loggerProducer,
-    ArrayList<Function<IIdentificator, Optional<IContent>>> searcherFunctions
+    ArrayList<Function<IIdentificator, Optional<IContent>>> searcherFunctions,
+    Gson gson
   ) {
     this.logger = loggerProducer.apply(this.getClass());
     this.idSupplier = idSupplier;
     this.searcherFunctions = searcherFunctions;
+    this.deserializator = (str) -> {
+      return gson.fromJson(str, IVirtualFile.class);
+    };
+    this.serilizator = (src) -> {
+      return gson.toJson(src, IVirtualFile.class);
+    };
+  }
+
+  public String toJson(IVirtualFile virtualFile) {
+    return this.serilizator.apply(virtualFile);
+  }
+
+  public IVirtualFile fromJson(String json) {
+    return this.deserializator.apply(json);
   }
 
   public int addSearcher(Function<IIdentificator, Optional<IContent>> searcher) {
