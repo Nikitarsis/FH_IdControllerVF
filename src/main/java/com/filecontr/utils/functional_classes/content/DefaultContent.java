@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-class DefaultContent implements IContent {
+public class DefaultContent implements IContent {
   Long creationTime;
   FileData fileData;
 }
