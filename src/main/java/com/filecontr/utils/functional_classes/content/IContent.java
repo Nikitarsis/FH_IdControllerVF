@@ -1,8 +1,8 @@
 package com.filecontr.utils.functional_classes.content;
 
-import com.filecontr.utils.functional_classes.pathes.file_path.FilePath;
+import com.filecontr.utils.functional_classes.pathes.file_data.FileData;
 
 public interface IContent {
   Long getCreationTime();
-  FilePath getFilePath();
+  FileData getFileData();
 }

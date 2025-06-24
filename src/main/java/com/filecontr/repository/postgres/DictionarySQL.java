@@ -12,7 +12,9 @@ public record DictionarySQL(
   String GET_RELATIONS,
   String ADD_VIRTUAL_FILE,
   String UPDATE_VIRTUAL_FILE,
-  String DELETE_VIRTUAL_FILE
+  String DELETE_VIRTUAL_FILE,
+  String GET_PARENT,
+  String GET_CHILD
 ) {
 
   protected static DictionarySQL createFromMap(Function<String, String> dictionaryMapper) {
@@ -21,7 +23,9 @@ public record DictionarySQL(
       dictionaryMapper.apply("GET_RELATIONS"),
       dictionaryMapper.apply("ADD_VIRTUAL_FILE"),
       dictionaryMapper.apply("UPDATE_VIRTUAL_FILE"),
-      dictionaryMapper.apply("DELETE_VIRTUAL_FILE")
+      dictionaryMapper.apply("DELETE_VIRTUAL_FILE"),
+      dictionaryMapper.apply("GET_PARENT"),
+      dictionaryMapper.apply("GET_CHILD")
     );
   }
 

@@ -9,7 +9,7 @@ import com.filecontr.utils.adapters.logger.ILogger;
 import com.filecontr.utils.functional_classes.content.ContentFactory;
 import com.filecontr.utils.functional_classes.content.IContent;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
-import com.filecontr.utils.functional_classes.pathes.file_path.FilePath;
+import com.filecontr.utils.functional_classes.pathes.file_data.FileData;
 
 public class VirtualFileFactory {
   private final ArrayList<Function<IIdentificator, Optional<IContent>>> searcherFunctions; 
@@ -55,16 +55,13 @@ public class VirtualFileFactory {
   public Optional<IVirtualFile> createNewFileRoot(Optional<String> type) {
     try {
       var id = idSupplier.get();
-      String relativePath;
-      FilePath filePath;
+      FileData fileData;
       if (type.isPresent()) {
-        relativePath = String.format("./%s.%s", Long.toHexString(id.toLong()), type.get());
-        filePath = FilePath.createFilePathWithType(relativePath, type.get());
+        fileData = FileData.createFileDataWithType(type.get());
       } else {
-        relativePath = String.format("./%s", Long.toHexString(id.toLong()));
-        filePath = FilePath.createSimpleFilePath(relativePath);
+        fileData = FileData.createSimpleFileData();
       }
-      var content = ContentFactory.createEmptyContent(filePath);
+      var content = ContentFactory.createEmptyContent(fileData);
       logger.debug(String.format("File with ID %d created", id.toLong()));
       return Optional.of(new SimpleVirtualFile(id, Optional.empty(), content));
     } catch (Exception e) {
@@ -73,17 +70,16 @@ public class VirtualFileFactory {
     }
   }
 
-  public Optional<IVirtualFile> createNewFileDefault(String directoryPath, Optional<IIdentificator> parentId, Optional<String> type) {
+  public Optional<IVirtualFile> createNewFileDefault(Optional<IIdentificator> parentId, Optional<String> type) {
     try {
       var id = idSupplier.get();
-      var relativePath = String.format("%s%d", directoryPath, id.toLong());
-      FilePath filePath;
+      FileData fileData;
       if (type.isPresent()) {
-        filePath = FilePath.createFilePathWithType(relativePath, type.get());
+        fileData = FileData.createFileDataWithType(type.get());
       } else {
-        filePath = FilePath.createSimpleFilePath(relativePath);
+        fileData = FileData.createSimpleFileData();
       }
-      var content = ContentFactory.createEmptyContent(filePath);
+      var content = ContentFactory.createEmptyContent(fileData);
       logger.debug(String.format("File with ID %d created", id.toLong()));
       return Optional.of(new SimpleVirtualFile(id, parentId, content));
     } catch (Exception e) {
@@ -95,13 +91,13 @@ public class VirtualFileFactory {
   public Optional<IVirtualFile> createNewFilePseudonym(String relativePath, Optional<IIdentificator> parentId, Optional<String> type) {
     try {
       var id = idSupplier.get();
-      FilePath filePath;
+      FileData fileData;
       if (type.isPresent()) {
-        filePath = FilePath.createFilePathWithType(relativePath, type.get());
+        fileData = FileData.createFileDataWithType(type.get());
       } else {
-        filePath = FilePath.createSimpleFilePath(relativePath);
+        fileData = FileData.createSimpleFileData();
       }
-      var content = ContentFactory.createEmptyContent(filePath);
+      var content = ContentFactory.createEmptyContent(fileData);
       logger.debug(String.format("File with ID %d created", id.toLong()));
       return Optional.of(new SimpleVirtualFile(id, parentId, content));
     } catch (Exception e) {
