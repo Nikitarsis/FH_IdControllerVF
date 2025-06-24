@@ -128,19 +128,8 @@ public class TestVirtualFile {
   @Test
   void testCreateNewFileDefault() {
     var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>());
-    var optionalVirtualFile = vfFactory.createNewFileDefault("./testdirectory/a/b/", Optional.of("testtype"));
-    if (optionalVirtualFile.isEmpty()) {
-      Assertions.fail();
-    }
-    var virtualFile = optionalVirtualFile.get();
-    Assertions.assertNotNull(virtualFile.getContent());
-    Assertions.assertNotNull(virtualFile.getId());
-  }
-
-  @Test
-  void testCreateNewFilePseudonym() {
-    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>());
-    var optionalVirtualFile = vfFactory.createNewFilePseudonym("./testdirectory/a/b", Optional.of("testtype"));
+    var id = IdFactory.createTestFactory().getNextId();
+    var optionalVirtualFile = vfFactory.createNewFileDefault(Optional.of(id), Optional.of("testtype"));
     if (optionalVirtualFile.isEmpty()) {
       Assertions.fail();
     }
