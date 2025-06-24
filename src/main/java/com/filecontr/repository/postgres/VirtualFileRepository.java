@@ -75,7 +75,7 @@ public class VirtualFileRepository {
       .map(a -> String.format(
         "(%d, %s, %d)",
         a.getId().toLong(),
-        a.getContent().getFileData().type().isPresent()? a.getContent().getFileData().type().get() : "NONE",
+        a.getContent().getFileData().type().isPresent()? a.getContent().getFileData().type().get() : "/NONE",
         a.getContent().getCreationTime()
         )
       )

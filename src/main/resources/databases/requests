@@ -1,4 +1,4 @@
-GET_VIRTUAL_FILE--SELECT * FROM IdData WHERE id IN (:id);
+GET_VIRTUAL_FILE--SELECT idd.id, idr.parentId, idd.type, idd.creationTime FROM IdData AS idd JOIN IdRekations AS idr ON idd.id = idr.childId WHERE id IN (:id);
 ADD_VIRTUAL_FILE--BEGIN; INSERT INTO IdData (id, type, creationTime) VALUES :valuesProperties; INSERT INTO IdRelations (childId, parentId) VALUES :valuesRelations COMMIT;
 UPDATE_VIRTUAL_FILE--BEGIN; UPDATE IdData SET type = :valueType, creationTime = :valueTime WHERE id = :id; UPDATE IdRelations SET parentId = :valueParent WHERE id = :id COMMIT;
 DELETE_VIRTUAL_FILE--BEGIN; DELETE FROM IdData WHERE id IN (:id); DELETE FROM IdRelations WHERE childId IN (:id) COMMIT;
