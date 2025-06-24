@@ -1,76 +1,81 @@
 package com.filecontr.repository.postgres;
 
-import java.sql.ResultSet;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import com.filecontr.service.virtual_files.IVirtualFile;
-import com.filecontr.utils.functional_classes.id.IIdentificator;
 
 @Repository
 public class VirtualFileRepository {
-  private final NamedParameterJdbcTemplate jdbcTemplate;
-  private final DictionarySQL dictionary;
+  final BiFunction<String, MapSqlParameterSource, SqlRowSet> biQuery;
+  final Function<String, SqlRowSet> oneQuery;
+  final DictionarySQL dictionary;
 
-  public VirtualFileRepository(NamedParameterJdbcTemplate template, DictionarySQL dictionarySQL) {
-    this.jdbcTemplate = template;
+  protected VirtualFileRepository(
+    BiFunction<String, MapSqlParameterSource, SqlRowSet> biQuery,
+    Function<String, SqlRowSet> oneQuery,
+    DictionarySQL dictionarySQL
+  ) {
+    this.biQuery = biQuery;
+    this.oneQuery = oneQuery;
     this.dictionary = dictionarySQL;
   }
 
-  public Optional<IVirtualFile> getVirtualFileById(Function<ResultSet, Optional<IVirtualFile>> exec, Long... ids) {
+  public VirtualFileRepository(NamedParameterJdbcTemplate template, DictionarySQL dictionarySQL) {
+    this.biQuery = (String str, MapSqlParameterSource map) -> {
+      return template.queryForRowSet(str, map);
+    };
+    var params = new MapSqlParameterSource();
+    this.oneQuery = (String str) -> {
+      return template.queryForRowSet(str, params);
+    };
+    this.dictionary = dictionarySQL;
+  }
+
+  public SqlRowSet getVirtualFileById(Long... ids) {
     var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
     var params = new MapSqlParameterSource("id", value);
-    return jdbcTemplate.query(dictionary.GET_VIRTUAL_FILE(), params, exec::apply);
+    return biQuery.apply(dictionary.GET_VIRTUAL_FILE(), params);
   }
 
-  public Optional<Map<IIdentificator, IIdentificator>> getAllRelations(Function<ResultSet, Optional<Map<IIdentificator, IIdentificator>>> exec) {
-    return jdbcTemplate.query(dictionary.GET_RELATIONS(), exec::apply);
+  @Deprecated
+  public SqlRowSet getAllRelations() {
+    return oneQuery.apply(dictionary.GET_RELATIONS());
   }
 
-  public Optional<IIdentificator> getParentSingle(Function<ResultSet, Optional<IIdentificator>> exec, Long id) {
-    var params = new MapSqlParameterSource("id", id);
-    return jdbcTemplate.query(dictionary.GET_PARENT(), params, exec::apply);
-  }
-
-  public Optional<IIdentificator[]> getChildrenSingle(Function<ResultSet, Optional<IIdentificator[]>> exec, Long id) {
-    var params = new MapSqlParameterSource("id", id);
-    return jdbcTemplate.query(dictionary.GET_PARENT(), params, exec::apply);
-  }
-
-  public Optional<Map<IIdentificator, IIdentificator>> getParentsMap(Function<ResultSet, Optional<Map<IIdentificator, IIdentificator>>> exec, Long... ids) {
+  public SqlRowSet getParents(Long... ids) {
     var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
     var params = new MapSqlParameterSource("id", value);
-    return jdbcTemplate.query(dictionary.GET_PARENT(), params, exec::apply);
+    return biQuery.apply(dictionary.GET_PARENT(), params);
   }
 
-  public Optional<Map<IIdentificator, IIdentificator[]>> getChildrenMap(Function<ResultSet, Optional<Map<IIdentificator, IIdentificator[]>>> exec, Long... ids) {
+  public SqlRowSet getChildren(Long... ids) {
     var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
     var params = new MapSqlParameterSource("id", value);
-    return jdbcTemplate.query(dictionary.GET_CHILD(), params, exec::apply);
+    return biQuery.apply(dictionary.GET_CHILD(), params);
   }
 
-  public Boolean addVirtualFile(Function<ResultSet, Optional<IVirtualFile>> exec, IVirtualFile... files) {
-    var stream = Arrays.stream(files);
-    String valuesRelations = stream
+  public Boolean addVirtualFile(IVirtualFile... files) {
+    String valuesRelations = Arrays.stream(files)
       .map(a -> String.format(
         "(%d, %d)",
         a.getId().toLong(),
-        a.getParentId().get().toLong()
+        a.getParentId().isPresent()? a.getParentId().get().toLong() : a.getId().toLong()
         )
       )
       .collect(Collectors.joining(", "));
-    String valuesProperties = stream
+    String valuesProperties = Arrays.stream(files)
       .map(a -> String.format(
-        "(%d, %d, %d)",
+        "(%d, %s, %d)",
         a.getId().toLong(),
-        a.getContent().getFileData().parentId().get().toLong(),
+        a.getContent().getFileData().type().isPresent()? a.getContent().getFileData().type().get() : "NONE",
         a.getContent().getCreationTime()
         )
       )
@@ -78,14 +83,14 @@ public class VirtualFileRepository {
     var params = new MapSqlParameterSource();
     params.addValue("valuesProperties", valuesProperties);
     params.addValue("valuesRelations", valuesRelations);
-    jdbcTemplate.update(dictionary.ADD_VIRTUAL_FILE(), params);
+    biQuery.apply(dictionary.ADD_VIRTUAL_FILE(), params);
     return true;
   }
 
   public Boolean deleteVirtualFile(Long... ids) {
     var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
     var params = new MapSqlParameterSource("id", value);
-    jdbcTemplate.update(dictionary.ADD_VIRTUAL_FILE(), params);
+    biQuery.apply(dictionary.ADD_VIRTUAL_FILE(), params);
     return true;
   }
 }

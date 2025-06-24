@@ -17,7 +17,7 @@ public record DictionarySQL(
   String GET_CHILD
 ) {
 
-  protected static DictionarySQL createFromMap(Function<String, String> dictionaryMapper) {
+  protected static DictionarySQL createFromMapper(Function<String, String> dictionaryMapper) {
     return new DictionarySQL(
       dictionaryMapper.apply("GET_VIRTUAL_FILE"),
       dictionaryMapper.apply("GET_RELATIONS"),
@@ -40,7 +40,7 @@ public record DictionarySQL(
         }
         throw new RuntimeException(String.format("No such SQL Request name: %s", key));
       };
-      return Optional.of(createFromMap(func));
+      return Optional.of(createFromMapper(func));
     }
   }
 }
