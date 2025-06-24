@@ -21,6 +21,10 @@ public class IdFactory {
     return new DefaultIdentificator(id);
   }
 
+  public static IIdentificator createIdFromLong(Long id) {
+    return new DefaultIdentificator(id);
+  }
+
   public static IdFactory createTestFactory() {
     var testServer = new IIdResolver() {
       private Long id = 0l;
