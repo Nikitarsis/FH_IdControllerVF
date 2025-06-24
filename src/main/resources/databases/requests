@@ -1,5 +1,7 @@
 GET_VIRTUAL_FILE--SELECT * FROM IdData WHERE id IN (:id);
-ADD_VIRTUAL_FILE--BEGIN; INSERT INTO IdData (id, relativePath, type, creationTime) VALUES :valuesProperties; INSERT INTO IdRelations (childId, parentId) VALUES :valuesRelations COMMIT;
-UPDATE_VIRTUAL_FILE--BEGIN; UPDATE IdData SET relativePath = :valuePath, type = :valueType, creationTime = :valueTime WHERE id = :id; UPDATE IdRelations SET parentId = :valueParent WHERE id = :id COMMIT;
+ADD_VIRTUAL_FILE--BEGIN; INSERT INTO IdData (id, type, creationTime) VALUES :valuesProperties; INSERT INTO IdRelations (childId, parentId) VALUES :valuesRelations COMMIT;
+UPDATE_VIRTUAL_FILE--BEGIN; UPDATE IdData SET type = :valueType, creationTime = :valueTime WHERE id = :id; UPDATE IdRelations SET parentId = :valueParent WHERE id = :id COMMIT;
 DELETE_VIRTUAL_FILE--BEGIN; DELETE FROM IdData WHERE id IN (:id); DELETE FROM IdRelations WHERE childId IN (:id) COMMIT;
 GET_RELATIONS--SELECT * FROM IdRelations;
+GET_PARENT--SELECT * FROM IdRelations WHERE childId IN (:id);
+GET_CHILD--SELECT * FROM IdRelations WHERE parentId IN (:id);
