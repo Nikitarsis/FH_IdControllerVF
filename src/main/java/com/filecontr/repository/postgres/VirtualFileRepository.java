@@ -11,24 +11,32 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import com.filecontr.service.virtual_files.IVirtualFile;
+import com.filecontr.utils.adapters.logger.ILogger;
 
 @Repository
 public class VirtualFileRepository {
   final BiFunction<String, MapSqlParameterSource, SqlRowSet> biQuery;
   final Function<String, SqlRowSet> oneQuery;
+  final ILogger logger;
   final DictionarySQL dictionary;
 
   protected VirtualFileRepository(
     BiFunction<String, MapSqlParameterSource, SqlRowSet> biQuery,
     Function<String, SqlRowSet> oneQuery,
+    Function<Class<?>, ILogger> loggerProducer,
     DictionarySQL dictionarySQL
   ) {
     this.biQuery = biQuery;
+    this.logger = loggerProducer.apply(this.getClass());
     this.oneQuery = oneQuery;
     this.dictionary = dictionarySQL;
   }
 
-  public VirtualFileRepository(NamedParameterJdbcTemplate template, DictionarySQL dictionarySQL) {
+  public VirtualFileRepository(
+    NamedParameterJdbcTemplate template,
+    Function<Class<?>, ILogger> loggerProducer,
+    DictionarySQL dictionarySQL
+  ) {
     this.biQuery = (String str, MapSqlParameterSource map) -> {
       return template.queryForRowSet(str, map);
     };
@@ -37,27 +45,33 @@ public class VirtualFileRepository {
       return template.queryForRowSet(str, params);
     };
     this.dictionary = dictionarySQL;
+    this.logger = loggerProducer.apply(this.getClass());
   }
 
   public SqlRowSet getVirtualFileById(Long... ids) {
     var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
+    logger.debug(String.format("Getting VirtualFile from PostgreSQL; ids: %s", value));
     var params = new MapSqlParameterSource("id", value);
     return biQuery.apply(dictionary.GET_VIRTUAL_FILE(), params);
   }
 
   @Deprecated
   public SqlRowSet getAllRelations() {
+    logger.debug("Getting all Relations from PostgreSQL");
+    logger.warn("Deprecated method");
     return oneQuery.apply(dictionary.GET_RELATIONS());
   }
 
   public SqlRowSet getParents(Long... ids) {
     var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
+    logger.debug(String.format("Getting parents from PostgreSQL; ids: %s", value));
     var params = new MapSqlParameterSource("id", value);
     return biQuery.apply(dictionary.GET_PARENT(), params);
   }
 
   public SqlRowSet getChildren(Long... ids) {
     var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
+    logger.debug(String.format("Getting children from PostgreSQL; ids: %s", value));
     var params = new MapSqlParameterSource("id", value);
     return biQuery.apply(dictionary.GET_CHILD(), params);
   }
@@ -81,6 +95,7 @@ public class VirtualFileRepository {
       )
       .collect(Collectors.joining(", "));
     var params = new MapSqlParameterSource();
+    logger.debug(String.format("Add VirtualFile to PostgreSQL; ids: %s;%s", valuesProperties, valuesRelations));
     params.addValue("valuesProperties", valuesProperties);
     params.addValue("valuesRelations", valuesRelations);
     biQuery.apply(dictionary.ADD_VIRTUAL_FILE(), params);
@@ -89,6 +104,7 @@ public class VirtualFileRepository {
 
   public Boolean deleteVirtualFile(Long... ids) {
     var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
+    logger.debug(String.format("Removing VirtualFile from PostgreSQL; ids: %s", value));
     var params = new MapSqlParameterSource("id", value);
     biQuery.apply(dictionary.ADD_VIRTUAL_FILE(), params);
     return true;
