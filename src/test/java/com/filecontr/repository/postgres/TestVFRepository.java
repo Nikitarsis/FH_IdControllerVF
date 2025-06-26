@@ -18,7 +18,7 @@ import com.filecontr.utils.functional_classes.id.IdFactory;
 
 public class TestVFRepository {
 
-  VirtualFileRepository getTestRepository(final Consumer<String> checkSQL, final Consumer<MapSqlParameterSource> checkParam, DictionarySQL dictionarySQL){
+  VirtualFilePostgres getTestRepository(final Consumer<String> checkSQL, final Consumer<MapSqlParameterSource> checkParam, DictionarySQL dictionarySQL){
     BiFunction<String, MapSqlParameterSource, List<Map<String, String>>> biQuery = (sql, param) -> {
       checkSQL.accept(sql);
       checkParam.accept(param);
@@ -28,7 +28,7 @@ public class TestVFRepository {
       checkSQL.accept(sql);
       return null;
     };
-    return new VirtualFileRepository(biQuery, oneQuery, AdapterLoggerFactory::getTestLogger, dictionarySQL);
+    return new VirtualFilePostgres(biQuery, oneQuery, AdapterLoggerFactory::getTestLogger, dictionarySQL);
   }
 
   Consumer<String> getSQLChecker(String expected) {
