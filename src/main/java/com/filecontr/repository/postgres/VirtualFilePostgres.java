@@ -18,13 +18,13 @@ import com.filecontr.service.virtual_files.IVirtualFile;
 import com.filecontr.utils.adapters.logger.ILogger;
 
 @Repository
-public class VirtualFileRepository {
+public class VirtualFilePostgres {
   final BiFunction<String, MapSqlParameterSource, List<Map<String, String>>> biQuery;
   final Function<String, List<Map<String, String>>> oneQuery;
   final ILogger logger;
   final DictionarySQL dictionary;
 
-  protected VirtualFileRepository(
+  protected VirtualFilePostgres(
     BiFunction<String, MapSqlParameterSource, List<Map<String, String>>> biQuery,
     Function<String, List<Map<String, String>>> oneQuery,
     Function<Class<?>, ILogger> loggerProducer,
@@ -36,7 +36,7 @@ public class VirtualFileRepository {
     this.dictionary = dictionarySQL;
   }
 
-  public VirtualFileRepository(
+  public VirtualFilePostgres(
     NamedParameterJdbcTemplate template,
     Function<Class<?>, ILogger> loggerProducer,
     DictionarySQL dictionarySQL
