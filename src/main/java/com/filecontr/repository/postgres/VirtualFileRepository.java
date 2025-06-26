@@ -1,6 +1,10 @@
 package com.filecontr.repository.postgres;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -15,14 +19,14 @@ import com.filecontr.utils.adapters.logger.ILogger;
 
 @Repository
 public class VirtualFileRepository {
-  final BiFunction<String, MapSqlParameterSource, SqlRowSet> biQuery;
-  final Function<String, SqlRowSet> oneQuery;
+  final BiFunction<String, MapSqlParameterSource, List<Map<String, String>>> biQuery;
+  final Function<String, List<Map<String, String>>> oneQuery;
   final ILogger logger;
   final DictionarySQL dictionary;
 
   protected VirtualFileRepository(
-    BiFunction<String, MapSqlParameterSource, SqlRowSet> biQuery,
-    Function<String, SqlRowSet> oneQuery,
+    BiFunction<String, MapSqlParameterSource, List<Map<String, String>>> biQuery,
+    Function<String, List<Map<String, String>>> oneQuery,
     Function<Class<?>, ILogger> loggerProducer,
     DictionarySQL dictionarySQL
   ) {
@@ -38,17 +42,32 @@ public class VirtualFileRepository {
     DictionarySQL dictionarySQL
   ) {
     this.biQuery = (String str, MapSqlParameterSource map) -> {
-      return template.queryForRowSet(str, map);
+      return rowSetToMap(template.queryForRowSet(str, map));
     };
     var params = new MapSqlParameterSource();
     this.oneQuery = (String str) -> {
-      return template.queryForRowSet(str, params);
+      return rowSetToMap(template.queryForRowSet(str, params));
     };
     this.dictionary = dictionarySQL;
     this.logger = loggerProducer.apply(this.getClass());
   }
 
-  public SqlRowSet getVirtualFileById(Long... ids) {
+  protected List<Map<String, String>> rowSetToMap(SqlRowSet resultSet) {
+    ArrayList<Map<String, String>> ret = new ArrayList<>();
+    while (resultSet.next()) {
+      Map<String, String> valueMap = new HashMap<>();
+      var columnCount = resultSet.getMetaData().getColumnCount();
+      for (var i = 0; i < columnCount; i++) {
+        var key = resultSet.getMetaData().getColumnName(i);
+        var value = resultSet.getString(i);
+        valueMap.put(key, value);
+      }
+      ret.add(valueMap);
+    }
+    return ret;
+  }
+
+  public List<Map<String, String>> getVirtualFileById(Long... ids) {
     var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
     logger.debug(String.format("Getting VirtualFile from PostgreSQL; ids: %s", value));
     var params = new MapSqlParameterSource("id", value);
@@ -56,20 +75,20 @@ public class VirtualFileRepository {
   }
 
   @Deprecated
-  public SqlRowSet getAllRelations() {
+  public List<Map<String, String>> getAllRelations() {
     logger.debug("Getting all Relations from PostgreSQL");
     logger.warn("Deprecated method");
     return oneQuery.apply(dictionary.GET_RELATIONS());
   }
 
-  public SqlRowSet getParents(Long... ids) {
+  public List<Map<String, String>> getParents(Long... ids) {
     var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
     logger.debug(String.format("Getting parents from PostgreSQL; ids: %s", value));
     var params = new MapSqlParameterSource("id", value);
     return biQuery.apply(dictionary.GET_PARENT(), params);
   }
 
-  public SqlRowSet getChildren(Long... ids) {
+  public List<Map<String, String>> getChildren(Long... ids) {
     var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
     logger.debug(String.format("Getting children from PostgreSQL; ids: %s", value));
     var params = new MapSqlParameterSource("id", value);
