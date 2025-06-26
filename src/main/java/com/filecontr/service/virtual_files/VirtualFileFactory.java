@@ -1,11 +1,11 @@
 package com.filecontr.service.virtual_files;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.filecontr.utils.adapters.logger.ILogger;
 import com.filecontr.utils.functional_classes.content.ContentFactory;
@@ -56,33 +56,37 @@ public class VirtualFileFactory {
     searcherFunctions.remove(id);
   }
 
-  public Optional<IVirtualFile[]> getVirtualFileFromSql(SqlRowSet sqlSet) {
+  public Optional<List<IVirtualFile>> getVirtualFileFromSql(List<Map<String, String>> sqlMapList) {
     ArrayList<IVirtualFile> array = new ArrayList<>();
     logger.debug("Process SQL request");
-    while (sqlSet.next()) {
-      var rawId = sqlSet.getLong("id");
-      var rawParentId = sqlSet.getLong("parentId");
-      var rawCreationTime = sqlSet.getLong("creationTime");
-      var rawType = sqlSet.getString("type");
+    try{
+      for (var sqlMap: sqlMapList) {
+        var rawId = Long.parseLong(sqlMap.get("id"));
+        var rawParentId = Long.parseLong(sqlMap.get("parentId"));
+        var rawCreationTime = Long.parseLong(sqlMap.get("creationTime"));
+        var rawType = sqlMap.get("type");
       
-      Optional<IIdentificator> parentId = Optional.empty();
-      if (rawId != rawParentId) {
-        parentId = Optional.of(IdFactory.createIdFromLong(rawParentId));
+        Optional<IIdentificator> parentId = Optional.empty();
+        if (rawId != rawParentId) {
+          parentId = Optional.of(IdFactory.createIdFromLong(rawParentId));
+        }
+        Optional<String> type = Optional.empty();
+        if (!rawType.equals("/NONE")) {
+          type = Optional.of(rawType);
+        }
+        var fileData = new FileData(type, parentId);
+        var content = ContentFactory.createContent(rawCreationTime, fileData);
+        var id = IdFactory.createIdFromLong(rawId);
+        array.add(new SimpleVirtualFile(id, content));
       }
-      Optional<String> type = Optional.empty();
-      if (!rawType.equals("/NONE")) {
-        type = Optional.of(rawType);
-      }
-      var fileData = new FileData(type, parentId);
-      var content = ContentFactory.createContent(rawCreationTime, fileData);
-      var id = IdFactory.createIdFromLong(rawId);
-      array.add(new SimpleVirtualFile(id, content));
-    }
+    } catch (NumberFormatException e) {
+      logger.warn("Virtual File parsing error");
+      return Optional.empty();
+    } 
     if (array.size() == 0) {
       return Optional.empty();
     }
-    var ret = new IVirtualFile[array.size()];
-    return Optional.of(array.toArray(ret));
+    return Optional.of(array);
   }
 
   public Optional<IVirtualFile> getVirtualFileById(IIdentificator id) {
