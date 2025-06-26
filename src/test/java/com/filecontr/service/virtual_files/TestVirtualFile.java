@@ -14,6 +14,8 @@ import com.filecontr.utils.functional_classes.content.ContentFactory;
 import com.filecontr.utils.functional_classes.content.IContent;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
 import com.filecontr.utils.functional_classes.id.IdFactory;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class TestVirtualFile {
 
@@ -21,6 +23,13 @@ public class TestVirtualFile {
 
   IIdentificator getTestId() {
     return factory.getNextId(); 
+  }
+
+  Gson getTestGson() {
+    var strategy = new VirtualFileConverter();
+    var builder = new GsonBuilder();
+    builder.registerTypeAdapter(IVirtualFile.class, strategy);
+    return builder.create();
   }
 
   @Test
@@ -31,14 +40,14 @@ public class TestVirtualFile {
       return Optional.empty();
     };
     var array = new ArrayList<>(List.of(searcher));
-    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, array);
+    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, array, getTestGson());
     vfFactory.getVirtualFileById(getTestId());
     Assertions.assertTrue(check.get());  
   }
 
   @Test
   void testFindMany() {
-    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>());
+    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>(), getTestGson());
     var check1 = new AtomicBoolean(false);
     vfFactory.addSearcher(
       (a) -> {
@@ -59,7 +68,7 @@ public class TestVirtualFile {
 
   @Test
   void testFindAndStop() {
-    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>());
+    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>(), getTestGson());
     var check1 = new AtomicBoolean(false);
     vfFactory.addSearcher(
       (a) -> {
@@ -86,7 +95,7 @@ public class TestVirtualFile {
 
   @Test
   void testaddSearcher() {
-    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>());
+    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>(), getTestGson());
     AtomicBoolean check = new AtomicBoolean(false);
     vfFactory.addSearcher(
       (a) -> {
@@ -100,7 +109,7 @@ public class TestVirtualFile {
 
   @Test
   void testremoveSearcher() {
-    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>());
+    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>(), getTestGson());
     AtomicBoolean check = new AtomicBoolean(false);
     var id = vfFactory.addSearcher(
       (a) -> {
@@ -115,7 +124,7 @@ public class TestVirtualFile {
 
   @Test
   void testCreateNewFileRoot() {
-    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>());
+    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>(), getTestGson());
     var optionalVirtualFile = vfFactory.createNewFileRoot(Optional.of("testtype"));
     if (optionalVirtualFile.isEmpty()) {
       Assertions.fail();
@@ -127,7 +136,7 @@ public class TestVirtualFile {
 
   @Test
   void testCreateNewFileDefault() {
-    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>());
+    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>(), getTestGson());
     var id = IdFactory.createTestFactory().getNextId();
     var optionalVirtualFile = vfFactory.createNewFileDefault(Optional.of(id), Optional.of("testtype"));
     if (optionalVirtualFile.isEmpty()) {

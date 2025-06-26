@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.filecontr.service.virtual_files.IVirtualFile;
+import com.filecontr.utils.adapters.logger.AdapterLoggerFactory;
 import com.filecontr.utils.functional_classes.id.IdFactory;
 
 public class TestVFRepository {
@@ -27,7 +28,7 @@ public class TestVFRepository {
       checkSQL.accept(sql);
       return null;
     };
-    return new VirtualFileRepository(biQuery, oneQuery, dictionarySQL);
+    return new VirtualFileRepository(biQuery, oneQuery, AdapterLoggerFactory::getTestLogger, dictionarySQL);
   }
 
   Consumer<String> getSQLChecker(String expected) {
