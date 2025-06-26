@@ -1,6 +1,7 @@
 package com.filecontr.repository.postgres;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -10,7 +11,6 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.filecontr.service.virtual_files.IVirtualFile;
 import com.filecontr.utils.adapters.logger.AdapterLoggerFactory;
@@ -19,12 +19,12 @@ import com.filecontr.utils.functional_classes.id.IdFactory;
 public class TestVFRepository {
 
   VirtualFileRepository getTestRepository(final Consumer<String> checkSQL, final Consumer<MapSqlParameterSource> checkParam, DictionarySQL dictionarySQL){
-    BiFunction<String, MapSqlParameterSource, SqlRowSet> biQuery = (sql, param) -> {
+    BiFunction<String, MapSqlParameterSource, List<Map<String, String>>> biQuery = (sql, param) -> {
       checkSQL.accept(sql);
       checkParam.accept(param);
       return null;
     };
-    Function<String, SqlRowSet> oneQuery = (sql) -> {
+    Function<String, List<Map<String, String>>> oneQuery = (sql) -> {
       checkSQL.accept(sql);
       return null;
     };
