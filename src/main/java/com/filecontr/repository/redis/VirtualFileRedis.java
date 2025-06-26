@@ -43,7 +43,7 @@ public class VirtualFileRedis {
 
   public Optional<String> getVirtualFileAsJson(IIdentificator id) {
     var ret = getterVirtualFile.apply(id.toLong().toString());
-    logger.debug(String.format("Getting Virtual File id %s from Redish", id.toLong().toString()));
+    logger.debug(String.format("Getting Virtual File id %s from Redis", id.toLong().toString()));
     if (ret.equals("nil")) {
       return Optional.empty();
     }
