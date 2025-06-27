@@ -7,6 +7,10 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
+
 import com.filecontr.utils.adapters.logger.ILogger;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
 
@@ -15,6 +19,7 @@ import lombok.Setter;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.params.SetParams;
 
+@Repository
 public class VirtualFileRedis {
   final Function<String, String> getter;
   final BiFunction<String, String, String> setter;
@@ -22,9 +27,10 @@ public class VirtualFileRedis {
   final ILogger logger;
   @Setter @Getter Long ttl;
 
+  @Autowired
   public VirtualFileRedis(
     Jedis jedis,
-    Long ttl,
+    @Value("redisTtl") Long ttl,
     Function<Class<?>, ILogger> loggerProducer
   ) {
     this.ttl = ttl;
