@@ -10,8 +10,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.filecontr.utils.adapters.logger.AdapterLoggerFactory;
-import com.filecontr.utils.functional_classes.content.ContentFactory;
-import com.filecontr.utils.functional_classes.content.IContent;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
 import com.filecontr.utils.functional_classes.id.IdFactory;
 import com.google.gson.Gson;
@@ -35,13 +33,13 @@ public class TestVirtualFile {
   @Test
   void testFindOne() {
     AtomicBoolean check = new AtomicBoolean(false);
-    Function<IIdentificator, Optional<IContent>> searcher = (a) -> {
+    Function<IIdentificator, Optional<IVirtualFile>> searcher = (a) -> {
       check.set(true);   
       return Optional.empty();
     };
     var array = new ArrayList<>(List.of(searcher));
     var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, array, getTestGson());
-    vfFactory.getVirtualFileById(getTestId());
+    vfFactory.createVirtualFileById(getTestId());
     Assertions.assertTrue(check.get());  
   }
 
@@ -62,7 +60,7 @@ public class TestVirtualFile {
         return Optional.empty();
       }
     );
-    vfFactory.getVirtualFileById(getTestId());
+    vfFactory.createVirtualFileById(getTestId());
     Assertions.assertTrue(check1.get() && check2.get());
   }
 
@@ -80,7 +78,7 @@ public class TestVirtualFile {
     vfFactory.addSearcher(
       (a) -> {
         check2.set(true);
-        return Optional.of(ContentFactory.createTestContent());
+        return VirtualFileFactory.createTestVirtualFile();
       }
     );
     vfFactory.addSearcher(
@@ -89,7 +87,7 @@ public class TestVirtualFile {
         return Optional.empty();
       }
     );
-    vfFactory.getVirtualFileById(getTestId());
+    vfFactory.createVirtualFileById(getTestId());
     Assertions.assertTrue(check1.get() && check2.get());
   }
 
@@ -103,7 +101,7 @@ public class TestVirtualFile {
         return Optional.empty();
       }
     );
-    vfFactory.getVirtualFileById(getTestId());
+    vfFactory.createVirtualFileById(getTestId());
     Assertions.assertTrue(check.get());
   }
 
@@ -118,7 +116,7 @@ public class TestVirtualFile {
       }
     );
     vfFactory.removeSearcher(id);
-    vfFactory.getVirtualFileById(getTestId());
+    vfFactory.createVirtualFileById(getTestId());
     Assertions.assertFalse(check.get());
   }
 

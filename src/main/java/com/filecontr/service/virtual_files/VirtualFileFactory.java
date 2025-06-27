@@ -9,45 +9,44 @@ import java.util.function.Supplier;
 
 import com.filecontr.utils.adapters.logger.ILogger;
 import com.filecontr.utils.functional_classes.content.ContentFactory;
-import com.filecontr.utils.functional_classes.content.IContent;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
 import com.filecontr.utils.functional_classes.id.IdFactory;
 import com.filecontr.utils.functional_classes.pathes.file_data.FileData;
 import com.google.gson.Gson;
 
 public class VirtualFileFactory {
-  private final ArrayList<Function<IIdentificator, Optional<IContent>>> searcherFunctions; 
-  Supplier<IIdentificator> idSupplier;
-  ILogger logger;
-  Function<String, IVirtualFile> deserializator;
-  Function<IVirtualFile, String> serilizator;
+  private final ArrayList<Function<IIdentificator, Optional<IVirtualFile>>> searcherFunctions; 
+  private final Supplier<IIdentificator> idSupplier;
+  private final ILogger logger;
+  private final Function<String, IVirtualFile> deserializer;
+  private final Function<IVirtualFile, String> serilizer;
 
   public VirtualFileFactory(
     Supplier<IIdentificator> idSupplier,
     Function<Class<?>, ILogger> loggerProducer,
-    ArrayList<Function<IIdentificator, Optional<IContent>>> searcherFunctions,
+    ArrayList<Function<IIdentificator, Optional<IVirtualFile>>> searcherFunctions,
     Gson gson
   ) {
     this.logger = loggerProducer.apply(this.getClass());
     this.idSupplier = idSupplier;
     this.searcherFunctions = searcherFunctions;
-    this.deserializator = (str) -> {
+    this.deserializer = (str) -> {
       return gson.fromJson(str, IVirtualFile.class);
     };
-    this.serilizator = (src) -> {
+    this.serilizer = (src) -> {
       return gson.toJson(src, IVirtualFile.class);
     };
   }
 
   public String processVirtualFileToJson(IVirtualFile virtualFile) {
-    return this.serilizator.apply(virtualFile);
+    return this.serilizer.apply(virtualFile);
   }
 
-  public IVirtualFile getVirtualFileFromJson(String json) {
-    return this.deserializator.apply(json);
+  public IVirtualFile createVirtualFileFromJson(String json) {
+    return this.deserializer.apply(json);
   }
 
-  public int addSearcher(Function<IIdentificator, Optional<IContent>> searcher) {
+  public int addSearcher(Function<IIdentificator, Optional<IVirtualFile>> searcher) {
     searcherFunctions.add(searcher);
     return searcherFunctions.size()-1;
   }
@@ -56,7 +55,7 @@ public class VirtualFileFactory {
     searcherFunctions.remove(id);
   }
 
-  public Optional<List<IVirtualFile>> getVirtualFileFromSql(List<Map<String, String>> sqlMapList) {
+  public Optional<List<IVirtualFile>> createVirtualFileFromSql(List<Map<String, String>> sqlMapList) {
     ArrayList<IVirtualFile> array = new ArrayList<>();
     logger.debug("Process SQL request");
     try{
@@ -89,17 +88,17 @@ public class VirtualFileFactory {
     return Optional.of(array);
   }
 
-  public Optional<IVirtualFile> getVirtualFileById(IIdentificator id) {
+  public Optional<IVirtualFile> createVirtualFileById(IIdentificator id) {
     for (var searcher : searcherFunctions) {
-      Optional<IContent> content = Optional.empty();
+      Optional<IVirtualFile> virtualFile = Optional.empty();
       try {
-        content = searcher.apply(id);
+        virtualFile = searcher.apply(id);
       } catch (Exception e) {
         logger.warn("Unexpected exception catched: " + e.getMessage());
       }
-      if (content.isPresent()) {
+      if (virtualFile.isPresent()) {
         logger.trace(String.format("File ID %s found", Long.toHexString(id.toLong())));
-        return Optional.of(new SimpleVirtualFile(id, content.get()));
+        return virtualFile;
       }
     }
     logger.debug(String.format("File ID %s not found", Long.toHexString(id.toLong())));
@@ -135,5 +134,12 @@ public class VirtualFileFactory {
       logger.warn(String.format("File with ID %d wasn't created. Exception: %s", e.getMessage()));
       return Optional.empty();
     }
+  }
+
+  public static Optional<IVirtualFile> createTestVirtualFile() {
+    var id = IdFactory.createTestFactory().getNextId();
+    var content = ContentFactory.createTestContent();
+    var vf = new SimpleVirtualFile(id, content);
+    return Optional.of(vf);
   }
 }
