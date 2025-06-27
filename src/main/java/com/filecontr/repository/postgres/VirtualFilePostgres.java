@@ -9,6 +9,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -36,6 +37,7 @@ public class VirtualFilePostgres {
     this.dictionary = dictionarySQL;
   }
 
+  @Autowired
   public VirtualFilePostgres(
     NamedParameterJdbcTemplate template,
     Function<Class<?>, ILogger> loggerProducer,
