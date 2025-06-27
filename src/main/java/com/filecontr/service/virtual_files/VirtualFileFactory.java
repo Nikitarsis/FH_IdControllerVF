@@ -15,7 +15,7 @@ import com.filecontr.utils.functional_classes.pathes.file_data.FileData;
 import com.google.gson.Gson;
 
 public class VirtualFileFactory {
-  private final ArrayList<Function<IIdentificator, Optional<IVirtualFile>>> searcherFunctions; 
+  private final List<Function<IIdentificator, Optional<IVirtualFile>>> searcherFunctions; 
   private final Supplier<IIdentificator> idSupplier;
   private final ILogger logger;
   private final Function<String, IVirtualFile> deserializer;
@@ -24,7 +24,7 @@ public class VirtualFileFactory {
   public VirtualFileFactory(
     Supplier<IIdentificator> idSupplier,
     Function<Class<?>, ILogger> loggerProducer,
-    ArrayList<Function<IIdentificator, Optional<IVirtualFile>>> searcherFunctions,
+    List<Function<IIdentificator, Optional<IVirtualFile>>> searcherFunctions,
     Gson gson
   ) {
     this.logger = loggerProducer.apply(this.getClass());
