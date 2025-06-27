@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import com.filecontr.service.virtual_files.IVirtualFile;
 import com.filecontr.utils.adapters.logger.ILogger;
+import com.filecontr.utils.functional_classes.id.IIdentificator;
 
 @Repository
 public class VirtualFilePostgres {
@@ -69,8 +70,8 @@ public class VirtualFilePostgres {
     return ret;
   }
 
-  public List<Map<String, String>> getVirtualFileById(Long... ids) {
-    var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
+  public List<Map<String, String>> getVirtualFileById(IIdentificator... ids) {
+    var value = Arrays.stream(ids).map(id -> id.toLong().toString()).collect(Collectors.joining(","));
     logger.debug(String.format("Getting VirtualFile from PostgreSQL; ids: %s", value));
     var params = new MapSqlParameterSource("id", value);
     return biQuery.apply(dictionary.GET_VIRTUAL_FILE(), params);
@@ -83,15 +84,15 @@ public class VirtualFilePostgres {
     return oneQuery.apply(dictionary.GET_RELATIONS());
   }
 
-  public List<Map<String, String>> getParents(Long... ids) {
-    var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
+  public List<Map<String, String>> getParents(IIdentificator... ids) {
+    var value = Arrays.stream(ids).map(id -> id.toLong().toString()).collect(Collectors.joining(","));
     logger.debug(String.format("Getting parents from PostgreSQL; ids: %s", value));
     var params = new MapSqlParameterSource("id", value);
     return biQuery.apply(dictionary.GET_PARENT(), params);
   }
 
-  public List<Map<String, String>> getChildren(Long... ids) {
-    var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
+  public List<Map<String, String>> getChildren(IIdentificator... ids) {
+    var value = Arrays.stream(ids).map(id -> id.toLong().toString()).collect(Collectors.joining(","));
     logger.debug(String.format("Getting children from PostgreSQL; ids: %s", value));
     var params = new MapSqlParameterSource("id", value);
     return biQuery.apply(dictionary.GET_CHILD(), params);
@@ -123,8 +124,8 @@ public class VirtualFilePostgres {
     return true;
   }
 
-  public Boolean deleteVirtualFile(Long... ids) {
-    var value = Arrays.stream(ids).map(id -> id.toString()).collect(Collectors.joining(","));
+  public Boolean deleteVirtualFile(IIdentificator... ids) {
+    var value = Arrays.stream(ids).map(id -> id.toLong().toString()).collect(Collectors.joining(","));
     logger.debug(String.format("Removing VirtualFile from PostgreSQL; ids: %s", value));
     var params = new MapSqlParameterSource("id", value);
     biQuery.apply(dictionary.ADD_VIRTUAL_FILE(), params);
