@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -15,12 +16,13 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
+import com.filecontr.repository.virtual_file.IVirtualFileRepository;
 import com.filecontr.service.virtual_files.IVirtualFile;
 import com.filecontr.utils.adapters.logger.ILogger;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
 
 @Repository
-public class VirtualFilePostgres {
+public class VirtualFilePostgres implements IVirtualFileRepository<Map<String,String>>{
   final BiFunction<String, MapSqlParameterSource, List<Map<String, String>>> biQuery;
   final Function<String, List<Map<String, String>>> oneQuery;
   final ILogger logger;
@@ -70,11 +72,15 @@ public class VirtualFilePostgres {
     return ret;
   }
 
-  public List<Map<String, String>> getVirtualFileById(IIdentificator... ids) {
+  @Override
+  public List<Optional<IVirtualFile>> getVirtualFileById(
+      Function<Map<String,String>, Optional<IVirtualFile>> converter, 
+      IIdentificator... ids
+    ) {
     var value = Arrays.stream(ids).map(id -> id.toLong().toString()).collect(Collectors.joining(","));
     logger.debug(String.format("Getting VirtualFile from PostgreSQL; ids: %s", value));
     var params = new MapSqlParameterSource("id", value);
-    return biQuery.apply(dictionary.GET_VIRTUAL_FILE(), params);
+    return biQuery.apply(dictionary.GET_VIRTUAL_FILE(), params).stream().map(converter::apply).toList();
   }
 
   @Deprecated
@@ -98,6 +104,7 @@ public class VirtualFilePostgres {
     return biQuery.apply(dictionary.GET_CHILD(), params);
   }
 
+  @Override
   public Boolean addVirtualFile(IVirtualFile... files) {
     String valuesRelations = Arrays.stream(files)
       .map(a -> String.format(
@@ -124,6 +131,7 @@ public class VirtualFilePostgres {
     return true;
   }
 
+  @Override
   public Boolean deleteVirtualFile(IIdentificator... ids) {
     var value = Arrays.stream(ids).map(id -> id.toLong().toString()).collect(Collectors.joining(","));
     logger.debug(String.format("Removing VirtualFile from PostgreSQL; ids: %s", value));

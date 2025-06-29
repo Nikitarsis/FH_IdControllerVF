@@ -11,29 +11,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import com.filecontr.repository.virtual_file.IVirtualFileRepository;
+import com.filecontr.service.virtual_files.IVirtualFile;
 import com.filecontr.utils.adapters.logger.ILogger;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
+import com.google.gson.Gson;
 
 import lombok.Getter;
 import lombok.Setter;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.params.SetParams;
 
-@Repository
-public class VirtualFileRedis {
+@Repository("VirtualFileColdCache")
+public class VirtualFileRedis implements IVirtualFileRepository<String>{
   final Function<String, String> getter;
   final BiFunction<String, String, String> setter;
   final Function<String, Long> remover;
   final ILogger logger;
+  final Gson gson;
   @Setter @Getter Long ttl;
 
   @Autowired
   public VirtualFileRedis(
     Jedis jedis,
+    Gson gson,
     @Value("redisTtl") Long ttl,
     Function<Class<?>, ILogger> loggerProducer
   ) {
     this.ttl = ttl;
+    this.gson = gson;
     var params = new SetParams();
     params.pxAt(ttl);
     this.getter = (String key) -> {
@@ -48,13 +54,13 @@ public class VirtualFileRedis {
     this.logger = loggerProducer.apply(this.getClass());
   }
 
-  public Optional<String> getVirtualFileAsJson(IIdentificator id) {
-    var ret = getter.apply("vf:" + id.toLong().toString());
-    logger.debug(String.format("Getting Virtual File id %s from Redis", id.toLong().toString()));
-    if (ret.equals("nil")) {
-      return Optional.empty();
-    }
-    return Optional.of(ret);
+  @Override
+  public List<Optional<IVirtualFile>> getVirtualFileById(Function<String, Optional<IVirtualFile>> converter,IIdentificator... id) {
+    return Arrays.stream(id)
+      .peek(a -> logger.debug(String.format("Getting Virtual File id %s from Redis", a.toLong().toString())))
+      .map(a -> getter.apply("vf:" + a.toLong().toString()))
+      .map(converter::apply)
+      .toList();
   }
 
   public Optional<String> getParent(IIdentificator id) {
@@ -75,17 +81,12 @@ public class VirtualFileRedis {
     return Optional.of(List.of(ret));
   }
 
-  public Boolean addVirtualFileAsJson(IIdentificator id, String jsonVF) {
-    var ret = setter.apply("vf:" + id.toLong().toString(), jsonVF);
-    logger.debug(String.format("Adding Virtual File id %s to Redis", id.toLong().toString()));
-    if (ret == null) {
-      return false;
-    }
-    if (ret == "OK") {
-      return true;
-    }
-    logger.warn("Incorrect return of redis set");
-    return false;
+  @Override
+  public Boolean addVirtualFile(IVirtualFile... files) {
+    return !Arrays.stream(files)
+      .peek(a -> logger.debug(String.format("Adding Virtual File id %s to Redis", a.getId().toLong().toString())))
+      .map(file -> setter.apply("vf:" + file.getId().toLong().toString(), gson.toJson(file)))
+      .anyMatch(file -> file == null); 
   }
 
   public Boolean addParent(IIdentificator id, IIdentificator parent) {
@@ -115,9 +116,12 @@ public class VirtualFileRedis {
     return false;
   }
 
-  public Boolean removeVirtualFile(IIdentificator id) {
-    remover.apply("vf:" + id.toLong().toString());
-    logger.debug(String.format("Adding Virtual File id %s to Redis", id.toLong().toString()));
+  @Override
+  public Boolean deleteVirtualFile(IIdentificator... ids) {
+    for (var id: ids) {
+      remover.apply("vf:" + id.toLong().toString());
+      logger.debug(String.format("Adding Virtual File id %s to Redis", id.toLong().toString()));
+    }
     return true;
   }
 
