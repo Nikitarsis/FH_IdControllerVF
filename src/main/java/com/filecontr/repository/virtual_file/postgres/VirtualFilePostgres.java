@@ -1,4 +1,4 @@
-package com.filecontr.repository.postgres;
+package com.filecontr.repository.virtual_file.postgres;
 
 import java.util.ArrayList;
 import java.util.Arrays;

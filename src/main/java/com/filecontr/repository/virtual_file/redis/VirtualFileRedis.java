@@ -1,4 +1,4 @@
-package com.filecontr.repository.redis;
+package com.filecontr.repository.virtual_file.redis;
 
 import java.util.Arrays;
 import java.util.List;
