@@ -1,6 +1,5 @@
 package com.filecontr.service.virtual_files;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -55,37 +54,36 @@ public class VirtualFileFactory {
     searcherFunctions.remove(id);
   }
 
-  public Optional<List<IVirtualFile>> createVirtualFileFromSql(List<Map<String, String>> sqlMapList) {
-    ArrayList<IVirtualFile> array = new ArrayList<>();
-    logger.debug("Process SQL request");
-    try{
-      for (var sqlMap: sqlMapList) {
-        var rawId = Long.parseLong(sqlMap.get("id"));
-        var rawParentId = Long.parseLong(sqlMap.get("parentId"));
-        var rawCreationTime = Long.parseLong(sqlMap.get("creationTime"));
-        var rawType = sqlMap.get("type");
+  public Optional<IVirtualFile> createVirtualFileFromSql(Map<String, String> sqlMap) {
+    try {
+      var rawId = Long.parseLong(sqlMap.get("id"));
+      var rawParentId = Long.parseLong(sqlMap.get("parentId"));
+      var rawCreationTime = Long.parseLong(sqlMap.get("creationTime"));
+      var rawType = sqlMap.get("type");
       
-        Optional<IIdentificator> parentId = Optional.empty();
-        if (rawId != rawParentId) {
-          parentId = Optional.of(IdFactory.createIdFromLong(rawParentId));
-        }
-        Optional<String> type = Optional.empty();
-        if (!rawType.equals("/NONE")) {
-          type = Optional.of(rawType);
-        }
-        var fileData = new FileData(type, parentId);
-        var content = ContentFactory.createContent(rawCreationTime, fileData);
-        var id = IdFactory.createIdFromLong(rawId);
-        array.add(new SimpleVirtualFile(id, content));
+      Optional<IIdentificator> parentId = Optional.empty();
+      if (rawId != rawParentId) {
+        parentId = Optional.of(IdFactory.createIdFromLong(rawParentId));
       }
+      Optional<String> type = Optional.empty();
+      if (!rawType.equals("/NONE")) {
+        type = Optional.of(rawType);
+      }
+      var fileData = new FileData(type, parentId);
+      var content = ContentFactory.createContent(rawCreationTime, fileData);
+      var id = IdFactory.createIdFromLong(rawId);
+      return Optional.of(new SimpleVirtualFile(id, content));
     } catch (NumberFormatException e) {
-      logger.warn("Virtual File parsing error");
-      return Optional.empty();
-    } 
-    if (array.size() == 0) {
-      return Optional.empty();
+      logger.warn("Virtual File parsing error: " + e.getMessage());
+    } catch (RuntimeException e) {
+      logger.warn("Virtual File parsing error: " + e.getMessage());
     }
-    return Optional.of(array);
+    return Optional.empty();
+  }
+
+  public List<Optional<IVirtualFile>> createVirtualFileListFromSql(List<Map<String, String>> sqlMapList) {
+    logger.debug("Process SQL request");
+    return sqlMapList.stream().map(this::createVirtualFileFromSql).toList();
   }
 
   public Optional<IVirtualFile> createVirtualFileById(IIdentificator id) {
