@@ -1,5 +1,6 @@
 package com.filecontr.service.virtual_files;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.filecontr.repository.virtual_file.postgres.VirtualFilePostgres;
 import com.filecontr.repository.virtual_file.redis.VirtualFileRedis;
+import com.filecontr.service.server_data.IServerData;
 import com.filecontr.utils.adapters.logger.ILogger;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
 import com.filecontr.utils.functional_classes.id.IdFactory;
@@ -29,57 +31,62 @@ public class VirtualFileService {
     return gsonBuilder.create(); 
   }
 
-  protected Optional<IVirtualFile> findVirtualFileInSql(IIdentificator id) {
-    var sqlResponse = postgres.getVirtualFileById(id);
-    if (sqlResponse.size() > 1) {
-      logger.warn(String.format("Ambiguous situation: database return %d of id %s", sqlResponse.size(), id.toLong().toString()));
-      return Optional.empty();
+  protected List<Optional<IVirtualFile>> findVirtualFileInSql(IIdentificator... ids) {
+    var list = postgres.getVirtualFileById(fileFactory::createVirtualFileFromSql, ids);
+    for (var element : list) {
+      if (element.isEmpty()) {
+        logger.debug(String.format(
+          "Virtual File %s didn't find in SQL",
+          element.get().getId().toLong().toString())
+        );
+      }
     }
-    if (sqlResponse.isEmpty()) {
-      logger.debug(String.format("Virtual File %s didn't find in SQL", id.toLong().toString()));
-      return Optional.empty();
-    }
-    var list = fileFactory.createVirtualFileFromSql(sqlResponse);
-    if (sqlResponse.isEmpty()) {
-      logger.warn("Sql parsing error");
-      return Optional.empty();
-    }
-    if (list.get().size() != 1) {
-      logger.warn(String.format("Ambiguous situation: VirtualFileFactory parsing incorrectly"));
-      return Optional.empty();
-    }
-    return Optional.of(list.get().get(0));
+    return list;
   }
 
-  protected Optional<IVirtualFile> findInRedis(IIdentificator id) {
-    return Optional.empty();
+  protected List<Optional<IVirtualFile>> findVirtualFileInRedis(IIdentificator... ids) {
+    var list = redis.getVirtualFileById(fileFactory::createVirtualFileFromJson, ids);
+    for (var element : list) {
+      if (element.isEmpty()) {
+        logger.debug(String.format(
+          "Virtual File %s didn't find in Redis",
+          element.get().getId().toLong().toString())
+        );
+      }
+    }
+    return list;
   }
 
-  private List<Function<IIdentificator, Optional<IVirtualFile>>> getSearcherFunctions() {
-    return List.of(this::findInRedis, this::findVirtualFileInSql);
+  private List<Function<IIdentificator[], List<Optional<IVirtualFile>>>> getSearcherFunctions() {
+    return List.of(this::findVirtualFileInRedis, this::findVirtualFileInSql);
   }
 
   @Autowired
   public VirtualFileService(
     VirtualFilePostgres postgres,
     VirtualFileRedis redis,
+    IServerData idServer,
     Function<Class<?>, ILogger> loggerProducer
   ) {
     this.postgres = postgres;
     this.redis = redis;
     this.logger = loggerProducer.apply(this.getClass());   
 
-    this.fileFactory = new VirtualFileFactory(null, loggerProducer, getSearcherFunctions(), getGson());
+    this.fileFactory = new VirtualFileFactory(idServer::getNextId, loggerProducer, getSearcherFunctions(), getGson());
   }
 
-  public Optional<String> getVirtualFile(Long idLong) {
-    var id = IdFactory.createIdFromLong(idLong);
-    var virtualFile = fileFactory.createVirtualFileById(id);
-    if (virtualFile.isEmpty()) {
-      return Optional.empty();
-    }
-    var ret = fileFactory.processVirtualFileToJson(virtualFile.get());
-    redis.addVirtualFileAsJson(id, ret);
-    return Optional.of(ret);
+  public List<Optional<String>> getVirtualFile(Long... idLong) {
+    var ids = Arrays.stream(idLong)
+      .map(a -> IdFactory.createIdFromLong(a))
+      .toArray(IIdentificator[]::new);
+    var virtualFileMap = fileFactory.createVirtualFileById(ids);
+    var ret = virtualFileMap.entrySet().stream()
+      .filter(a -> a.getValue().isEmpty())
+      .map(a -> a.getValue().get())
+      .toArray(IVirtualFile[]::new);
+    redis.addVirtualFile(ret);
+    return Arrays.stream(ret)
+      .map(a -> fileFactory.processVirtualFileToJson(a))
+      .toList();
   }
 }

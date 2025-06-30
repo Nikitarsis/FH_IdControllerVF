@@ -1,11 +1,14 @@
 package com.filecontr.service.virtual_files;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
+import com.filecontr.service.server_data.IRequestForId;
 import com.filecontr.utils.adapters.logger.ILogger;
 import com.filecontr.utils.functional_classes.content.ContentFactory;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
@@ -14,16 +17,16 @@ import com.filecontr.utils.functional_classes.pathes.file_data.FileData;
 import com.google.gson.Gson;
 
 public class VirtualFileFactory {
-  private final List<Function<IIdentificator, Optional<IVirtualFile>>> searcherFunctions; 
-  private final Supplier<IIdentificator> idSupplier;
+  private final List<Function<IIdentificator[], List<Optional<IVirtualFile>>>> searcherFunctions; 
+  private final Function<IRequestForId, IIdentificator> idSupplier;
   private final ILogger logger;
   private final Function<String, IVirtualFile> deserializer;
   private final Function<IVirtualFile, String> serilizer;
 
   public VirtualFileFactory(
-    Supplier<IIdentificator> idSupplier,
+    Function<IRequestForId, IIdentificator> idSupplier,
     Function<Class<?>, ILogger> loggerProducer,
-    List<Function<IIdentificator, Optional<IVirtualFile>>> searcherFunctions,
+    List<Function<IIdentificator[], List<Optional<IVirtualFile>>>> searcherFunctions,
     Gson gson
   ) {
     this.logger = loggerProducer.apply(this.getClass());
@@ -37,15 +40,25 @@ public class VirtualFileFactory {
     };
   }
 
-  public String processVirtualFileToJson(IVirtualFile virtualFile) {
-    return this.serilizer.apply(virtualFile);
+  public Optional<String> processVirtualFileToJson(IVirtualFile virtualFile) {
+    try {
+      return Optional.of(this.serilizer.apply(virtualFile));
+    } catch (RuntimeException e) {
+      logger.warn("JSON processing error");
+      return Optional.empty();
+    }
   }
 
-  public IVirtualFile createVirtualFileFromJson(String json) {
-    return this.deserializer.apply(json);
+  public Optional<IVirtualFile> createVirtualFileFromJson(String json) {
+    try{
+      return Optional.of(this.deserializer.apply(json));
+    } catch (RuntimeException e) {
+      logger.warn("JSON parsing error");
+      return Optional.empty();
+    }
   }
 
-  public int addSearcher(Function<IIdentificator, Optional<IVirtualFile>> searcher) {
+  public int addSearcher(Function<IIdentificator[], List<Optional<IVirtualFile>>> searcher) {
     searcherFunctions.add(searcher);
     return searcherFunctions.size()-1;
   }
@@ -73,8 +86,6 @@ public class VirtualFileFactory {
       var content = ContentFactory.createContent(rawCreationTime, fileData);
       var id = IdFactory.createIdFromLong(rawId);
       return Optional.of(new SimpleVirtualFile(id, content));
-    } catch (NumberFormatException e) {
-      logger.warn("Virtual File parsing error: " + e.getMessage());
     } catch (RuntimeException e) {
       logger.warn("Virtual File parsing error: " + e.getMessage());
     }
@@ -86,26 +97,32 @@ public class VirtualFileFactory {
     return sqlMapList.stream().map(this::createVirtualFileFromSql).toList();
   }
 
-  public Optional<IVirtualFile> createVirtualFileById(IIdentificator id) {
+  public Map<IIdentificator, Optional<IVirtualFile>> createVirtualFileById(IIdentificator... ids) {
+    var remainingIds = new HashSet<IIdentificator>(List.of(ids));
+    var retArray = new ArrayList<Optional<IVirtualFile>>(ids.length);
+    var ret = new HashMap<IIdentificator, Optional<IVirtualFile>>();
     for (var searcher : searcherFunctions) {
-      Optional<IVirtualFile> virtualFile = Optional.empty();
-      try {
-        virtualFile = searcher.apply(id);
-      } catch (Exception e) {
-        logger.warn("Unexpected exception catched: " + e.getMessage());
-      }
-      if (virtualFile.isPresent()) {
-        logger.trace(String.format("File ID %s found", Long.toHexString(id.toLong())));
-        return virtualFile;
-      }
+      List<Optional<IVirtualFile>> result = searcher.apply(
+          remainingIds.toArray(IIdentificator[]::new)
+        ).stream()
+        .filter(a -> a.isPresent())
+        .toList();
+      result.stream().filter(a -> a.isPresent()).peek(a -> remainingIds.remove(a.get().getId())).close();
+      retArray.addAll(result);
     }
-    logger.debug(String.format("File ID %s not found", Long.toHexString(id.toLong())));
-    return Optional.empty();
+    remainingIds.stream().peek(a -> logger.debug(String.format("File ID %s not found", Long.toHexString(a.toLong())))).close();
+    for (var element : retArray) {
+      ret.put(element.get().getId(), element);
+    }
+    for (var element : remainingIds) {
+      ret.put(element, Optional.empty());
+    }
+    return ret;
   }
 
-  public Optional<IVirtualFile> createNewFileRoot(Optional<String> type) {
+  public Optional<IVirtualFile> createNewFileRoot(IRequestForId request, Optional<String> type) {
     try {
-      var id = idSupplier.get();
+      var id = idSupplier.apply(request);
       FileData fileData;
       if (type.isPresent()) {
         fileData = FileData.createFileDataWithType(type.get());
@@ -121,9 +138,9 @@ public class VirtualFileFactory {
     }
   }
 
-  public Optional<IVirtualFile> createNewFileDefault(Optional<IIdentificator> parentId, Optional<String> type) {
+  public Optional<IVirtualFile> createNewFileDefault(IRequestForId request, Optional<IIdentificator> parentId, Optional<String> type) {
     try {
-      var id = idSupplier.get();
+      var id = idSupplier.apply(request);
       FileData fileData = FileData.createFileDataFull(type, parentId);
       var content = ContentFactory.createEmptyContent(fileData);
       logger.debug(String.format("File with ID %d created", id.toLong()));
