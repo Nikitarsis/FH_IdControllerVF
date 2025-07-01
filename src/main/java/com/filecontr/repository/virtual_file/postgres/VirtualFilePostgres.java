@@ -139,4 +139,13 @@ public class VirtualFilePostgres implements IVirtualFileRepository<Map<String,St
     biQuery.apply(dictionary.ADD_VIRTUAL_FILE(), params);
     return true;
   }
+
+  @Override
+  public Boolean setType(IIdentificator id, String type) {
+    logger.debug(String.format(""));
+    var params = new MapSqlParameterSource("id", id.toLong().toString());
+    params.addValue("type", "type = " + type);
+    biQuery.apply(dictionary.UPDATE_VIRTUAL_FILE(), params);
+    return true;
+  }
 }

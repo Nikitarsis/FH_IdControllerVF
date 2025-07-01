@@ -136,4 +136,11 @@ public class VirtualFileRedis implements IVirtualFileRepository<String>{
     logger.debug(String.format("Adding Virtual File id %s to Redis", id.toLong().toString()));
     return true;
   }
+
+  @Override
+  public Boolean setType(IIdentificator id, String type) {
+    remover.apply("children:" + id.toLong().toString());
+    logger.debug(String.format("Removind file id %s due to incorrect cache.", id.toLong().toString()));
+    return false;
+  }
 }

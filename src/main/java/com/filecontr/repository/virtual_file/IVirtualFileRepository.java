@@ -10,5 +10,6 @@ import com.filecontr.utils.functional_classes.id.IIdentificator;
 public interface IVirtualFileRepository<T> {
   public List<Optional<IVirtualFile>> getVirtualFileById(Function<T, Optional<IVirtualFile>> converter, IIdentificator... ids);
   public Boolean addVirtualFile(IVirtualFile... files);
+  public Boolean setType(IIdentificator id, String type);
   public Boolean deleteVirtualFile(IIdentificator... ids);
 }
