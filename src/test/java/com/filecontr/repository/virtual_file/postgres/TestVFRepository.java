@@ -62,7 +62,7 @@ public class TestVFRepository {
       .map(IdFactory::createIdFromLong)
       .toArray(IIdentificator[]::new);
     var dictionarySQL = DictionarySQL.parseFromResource().get();
-    var checkParam = getParamChecker(Map.of("id", Arrays.stream(ids).map(a -> a.toString()).collect(Collectors.joining(","))));
+    var checkParam = getParamChecker(Map.of("id", Arrays.stream(longIds).map(a -> a.toString()).collect(Collectors.joining(","))));
     var checkerSQL = getSQLChecker(dictionarySQL.GET_VIRTUAL_FILE());
     var testRepo = getTestRepository(checkerSQL, checkParam, dictionarySQL);
     testRepo.getVirtualFileById(getConverter(), ids);
@@ -75,7 +75,7 @@ public class TestVFRepository {
       .map(IdFactory::createIdFromLong)
       .toArray(IIdentificator[]::new);
     var dictionarySQL = DictionarySQL.parseFromResource().get();
-    var checkParam = getParamChecker(Map.of("id", Arrays.stream(ids).map(a -> a.toString()).collect(Collectors.joining(","))));
+    var checkParam = getParamChecker(Map.of("id", Arrays.stream(longIds).map(a -> a.toString()).collect(Collectors.joining(","))));
     var checkerSQL = getSQLChecker(dictionarySQL.GET_PARENT());
     var testRepo = getTestRepository(checkerSQL, checkParam, dictionarySQL);
     testRepo.getParents(ids);
@@ -88,7 +88,7 @@ public class TestVFRepository {
       .map(IdFactory::createIdFromLong)
       .toArray(IIdentificator[]::new);
     var dictionarySQL = DictionarySQL.parseFromResource().get();
-    var checkParam = getParamChecker(Map.of("id", Arrays.stream(ids).map(a -> a.toString()).collect(Collectors.joining(","))));
+    var checkParam = getParamChecker(Map.of("id", Arrays.stream(longIds).map(a -> a.toString()).collect(Collectors.joining(","))));
     var checkerSQL = getSQLChecker(dictionarySQL.GET_CHILD());
     var testRepo = getTestRepository(checkerSQL, checkParam, dictionarySQL);
     testRepo.getChildren(ids);
