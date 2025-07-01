@@ -119,28 +119,35 @@ public class VirtualFileRedis implements IVirtualFileRepository<String>{
   @Override
   public Boolean deleteVirtualFile(IIdentificator... ids) {
     for (var id: ids) {
-      remover.apply("vf:" + id.toLong().toString());
-      logger.debug(String.format("Adding Virtual File id %s to Redis", id.toLong().toString()));
+      removeVirtualFile(id);
+      removeChildren(id);
+      removeParent(id);
     }
+    return true;
+  }
+
+  public Boolean removeVirtualFile(IIdentificator id){
+    remover.apply("vf:" + id.toLong().toString());
+    logger.debug(String.format("Removing Virtual File of %s from Redis", id.toLong().toString()));
     return true;
   }
 
   public Boolean removeParent(IIdentificator id) {
     remover.apply("parent:" + id.toLong().toString());
-    logger.debug(String.format("Adding Parent of %s to Redis", id.toLong().toString()));
+    logger.debug(String.format("Removing Parent of id %s from Redis", id.toLong().toString()));
     return true;
   }
 
   public Boolean removeChildren(IIdentificator id) {
     remover.apply("children:" + id.toLong().toString());
-    logger.debug(String.format("Adding Virtual File id %s to Redis", id.toLong().toString()));
+    logger.debug(String.format("Removing Childrens of id %s to Redis", id.toLong().toString()));
     return true;
   }
 
   @Override
   public Boolean setType(IIdentificator id, String type) {
-    remover.apply("children:" + id.toLong().toString());
-    logger.debug(String.format("Removind file id %s due to incorrect cache.", id.toLong().toString()));
+    deleteVirtualFile(id);
+    logger.debug(String.format("Removing file id %s due to incorrect cache.", id.toLong().toString()));
     return false;
   }
 }
