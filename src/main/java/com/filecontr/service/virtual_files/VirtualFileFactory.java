@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import com.filecontr.service.server_data.IRequestForId;
+import com.filecontr.service.server_data.IIdStrategy;
 import com.filecontr.utils.adapters.logger.ILogger;
 import com.filecontr.utils.functional_classes.content.ContentFactory;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
@@ -18,13 +18,13 @@ import com.google.gson.Gson;
 
 public class VirtualFileFactory {
   private final List<Function<IIdentificator[], List<Optional<IVirtualFile>>>> searcherFunctions; 
-  private final Function<IRequestForId, IIdentificator> idSupplier;
+  private final Function<IIdStrategy, IIdentificator> idSupplier;
   private final ILogger logger;
   private final Function<String, IVirtualFile> deserializer;
   private final Function<IVirtualFile, String> serilizer;
 
   public VirtualFileFactory(
-    Function<IRequestForId, IIdentificator> idSupplier,
+    Function<IIdStrategy, IIdentificator> idSupplier,
     Function<Class<?>, ILogger> loggerProducer,
     List<Function<IIdentificator[], List<Optional<IVirtualFile>>>> searcherFunctions,
     Gson gson
@@ -120,7 +120,7 @@ public class VirtualFileFactory {
     return ret;
   }
 
-  public Optional<IVirtualFile> createNewFileDefault(IRequestForId request) {
+  public Optional<IVirtualFile> createNewFileDefault(IIdStrategy request) {
     try {
       var id = idSupplier.apply(request);
       var parentId = request.getParent();

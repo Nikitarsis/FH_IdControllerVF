@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.filecontr.utils.functional_classes.id.IIdentificator;
 
-public interface IRequestForId {
+public interface IIdStrategy {
   Optional<IIdentificator> getParent();
   Optional<String> getType();
 }
