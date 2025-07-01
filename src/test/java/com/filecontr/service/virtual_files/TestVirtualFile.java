@@ -9,6 +9,7 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.filecontr.service.server_data.IIdStrategy;
 import com.filecontr.utils.adapters.logger.AdapterLoggerFactory;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
 import com.filecontr.utils.functional_classes.id.IdFactory;
@@ -19,7 +20,7 @@ public class TestVirtualFile {
 
   IdFactory factory = IdFactory.createTestFactory();
 
-  IIdentificator getTestId() {
+  IIdentificator getTestId(IIdStrategy strategy) {
     return factory.getNextId(); 
   }
 
@@ -33,13 +34,13 @@ public class TestVirtualFile {
   @Test
   void testFindOne() {
     AtomicBoolean check = new AtomicBoolean(false);
-    Function<IIdentificator, Optional<IVirtualFile>> searcher = (a) -> {
-      check.set(true);   
-      return Optional.empty();
+    Function<IIdentificator[], List<Optional<IVirtualFile>>> searcher = (a) -> {
+      check.set(true);
+      return List.of(Optional.empty());
     };
     var array = new ArrayList<>(List.of(searcher));
     var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, array, getTestGson());
-    vfFactory.createVirtualFileById(getTestId());
+    vfFactory.createVirtualFileById(getTestId(IIdStrategy.getTestStrategy()));
     Assertions.assertTrue(check.get());  
   }
 
@@ -50,17 +51,17 @@ public class TestVirtualFile {
     vfFactory.addSearcher(
       (a) -> {
         check1.set(true);   
-        return Optional.empty();
+        return List.of(Optional.empty());
       }
     );
     var check2 = new AtomicBoolean(false);
     vfFactory.addSearcher(
       (a) -> {
         check2.set(true);
-        return Optional.empty();
+        return List.of(Optional.empty());
       }
     );
-    vfFactory.createVirtualFileById(getTestId());
+    vfFactory.createVirtualFileById(getTestId(IIdStrategy.getTestStrategy()));
     Assertions.assertTrue(check1.get() && check2.get());
   }
 
@@ -71,23 +72,23 @@ public class TestVirtualFile {
     vfFactory.addSearcher(
       (a) -> {
         check1.set(true);   
-        return Optional.empty();
+        return List.of(Optional.empty());
       }
     );
     var check2 = new AtomicBoolean(false);
     vfFactory.addSearcher(
       (a) -> {
         check2.set(true);
-        return VirtualFileFactory.createTestVirtualFile();
+        return List.of(VirtualFileFactory.createTestVirtualFile());
       }
     );
     vfFactory.addSearcher(
       (a) -> {
         Assertions.fail();
-        return Optional.empty();
+        return List.of(Optional.empty());
       }
     );
-    vfFactory.createVirtualFileById(getTestId());
+    vfFactory.createVirtualFileById(getTestId(IIdStrategy.getTestStrategy()));
     Assertions.assertTrue(check1.get() && check2.get());
   }
 
@@ -98,10 +99,10 @@ public class TestVirtualFile {
     vfFactory.addSearcher(
       (a) -> {
         check.set(true);   
-        return Optional.empty();
+        return List.of(Optional.empty());
       }
     );
-    vfFactory.createVirtualFileById(getTestId());
+    vfFactory.createVirtualFileById(getTestId(IIdStrategy.getTestStrategy()));
     Assertions.assertTrue(check.get());
   }
 
@@ -112,31 +113,18 @@ public class TestVirtualFile {
     var id = vfFactory.addSearcher(
       (a) -> {
         check.set(true);   
-        return Optional.empty();
+        return List.of(Optional.empty());
       }
     );
     vfFactory.removeSearcher(id);
-    vfFactory.createVirtualFileById(getTestId());
+    vfFactory.createVirtualFileById(getTestId(IIdStrategy.getTestStrategy()));
     Assertions.assertFalse(check.get());
-  }
-
-  @Test
-  void testCreateNewFileRoot() {
-    var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>(), getTestGson());
-    var optionalVirtualFile = vfFactory.createNewFileRoot(Optional.of("testtype"));
-    if (optionalVirtualFile.isEmpty()) {
-      Assertions.fail();
-    }
-    var virtualFile = optionalVirtualFile.get();
-    Assertions.assertNotNull(virtualFile.getContent());
-    Assertions.assertNotNull(virtualFile.getId());
   }
 
   @Test
   void testCreateNewFileDefault() {
     var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>(), getTestGson());
-    var id = IdFactory.createTestFactory().getNextId();
-    var optionalVirtualFile = vfFactory.createNewFileDefault(Optional.of(id), Optional.of("testtype"));
+    var optionalVirtualFile = vfFactory.createNewFileDefault(IIdStrategy.getTestStrategy());
     if (optionalVirtualFile.isEmpty()) {
       Assertions.fail();
     }
