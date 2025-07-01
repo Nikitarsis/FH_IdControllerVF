@@ -1,8 +1,9 @@
-package com.filecontr.repository.postgres;
+package com.filecontr.repository.virtual_file.postgres;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -14,6 +15,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 import com.filecontr.service.virtual_files.IVirtualFile;
 import com.filecontr.utils.adapters.logger.AdapterLoggerFactory;
+import com.filecontr.utils.functional_classes.id.IIdentificator;
 import com.filecontr.utils.functional_classes.id.IdFactory;
 
 public class TestVFRepository {
@@ -22,11 +24,11 @@ public class TestVFRepository {
     BiFunction<String, MapSqlParameterSource, List<Map<String, String>>> biQuery = (sql, param) -> {
       checkSQL.accept(sql);
       checkParam.accept(param);
-      return null;
+      return List.of(Map.of("a", "b"));
     };
     Function<String, List<Map<String, String>>> oneQuery = (sql) -> {
       checkSQL.accept(sql);
-      return null;
+      return List.of(Map.of("a","b"));
     };
     return new VirtualFilePostgres(biQuery, oneQuery, AdapterLoggerFactory::getTestLogger, dictionarySQL);
   }
@@ -47,19 +49,31 @@ public class TestVFRepository {
     };
   }
 
+  Function<Map<String, String>, Optional<IVirtualFile>> getConverter() {
+    return (map) -> {
+      return Optional.of(IVirtualFile.getTestVF(IdFactory.createTestFactory()));
+    };
+  }
+
   @Test
   void testGetVirtualFileById() {
-    Long[] ids = {12l, 5l, 34l};
+    Long[] longIds = {12l, 5l, 34l};
+    var ids = Arrays.stream(longIds)
+      .map(IdFactory::createIdFromLong)
+      .toArray(IIdentificator[]::new);
     var dictionarySQL = DictionarySQL.parseFromResource().get();
     var checkParam = getParamChecker(Map.of("id", Arrays.stream(ids).map(a -> a.toString()).collect(Collectors.joining(","))));
     var checkerSQL = getSQLChecker(dictionarySQL.GET_VIRTUAL_FILE());
     var testRepo = getTestRepository(checkerSQL, checkParam, dictionarySQL);
-    testRepo.getVirtualFileById(ids);
+    testRepo.getVirtualFileById(getConverter(), ids);
   }
 
   @Test
   void testGetParents() {
-    Long[] ids = {12l, 5l, 34l};
+    Long[] longIds = {12l, 5l, 34l};
+    var ids = Arrays.stream(longIds)
+      .map(IdFactory::createIdFromLong)
+      .toArray(IIdentificator[]::new);
     var dictionarySQL = DictionarySQL.parseFromResource().get();
     var checkParam = getParamChecker(Map.of("id", Arrays.stream(ids).map(a -> a.toString()).collect(Collectors.joining(","))));
     var checkerSQL = getSQLChecker(dictionarySQL.GET_PARENT());
@@ -69,7 +83,10 @@ public class TestVFRepository {
   
   @Test
   void testGetChildren() {
-    Long[] ids = {12l, 5l, 34l};
+    Long[] longIds = {12l, 5l, 34l};
+    var ids = Arrays.stream(longIds)
+      .map(IdFactory::createIdFromLong)
+      .toArray(IIdentificator[]::new);
     var dictionarySQL = DictionarySQL.parseFromResource().get();
     var checkParam = getParamChecker(Map.of("id", Arrays.stream(ids).map(a -> a.toString()).collect(Collectors.joining(","))));
     var checkerSQL = getSQLChecker(dictionarySQL.GET_CHILD());
