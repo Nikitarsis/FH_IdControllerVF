@@ -69,6 +69,7 @@ public class TestVirtualFile {
   void testFindAndStop() {
     var vfFactory = new VirtualFileFactory(this::getTestId, AdapterLoggerFactory::getTestLogger, new ArrayList<>(), getTestGson());
     var check1 = new AtomicBoolean(false);
+    var vf = VirtualFileFactory.createTestVirtualFile();
     vfFactory.addSearcher(
       (a) -> {
         check1.set(true);   
@@ -79,16 +80,16 @@ public class TestVirtualFile {
     vfFactory.addSearcher(
       (a) -> {
         check2.set(true);
-        return List.of(VirtualFileFactory.createTestVirtualFile());
+        return List.of(vf);
       }
     );
     vfFactory.addSearcher(
-      (a) -> {
+      (IIdentificator[] a) -> {
         Assertions.fail();
         return List.of(Optional.empty());
       }
     );
-    vfFactory.createVirtualFileById(getTestId(IIdStrategy.getTestStrategy()));
+    vfFactory.createVirtualFileById(vf.get().getId());
     Assertions.assertTrue(check1.get() && check2.get());
   }
 

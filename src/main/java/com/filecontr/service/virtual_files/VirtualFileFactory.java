@@ -107,8 +107,11 @@ public class VirtualFileFactory {
         ).stream()
         .filter(a -> a.isPresent())
         .toList();
-      result.stream().filter(a -> a.isPresent()).peek(a -> remainingIds.remove(a.get().getId())).close();
+      remainingIds.removeAll(result.stream().map(a -> a.get().getId()).toList());
       retArray.addAll(result);
+      if (remainingIds.size() == 0) {
+        break;
+      } 
     }
     remainingIds.stream().peek(a -> logger.debug(String.format("File ID %s not found", Long.toHexString(a.toLong())))).close();
     for (var element : retArray) {
