@@ -22,7 +22,7 @@ import lombok.Setter;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.params.SetParams;
 
-@Repository("VirtualFileColdCache")
+@Repository("ColdCache")
 public class VirtualFileRedis implements IVirtualFileRepository<String>{
   final Function<String, String> getter;
   final BiFunction<String, String, String> setter;

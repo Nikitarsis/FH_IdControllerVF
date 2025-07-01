@@ -21,7 +21,7 @@ import com.filecontr.service.virtual_files.IVirtualFile;
 import com.filecontr.utils.adapters.logger.ILogger;
 import com.filecontr.utils.functional_classes.id.IIdentificator;
 
-@Repository
+@Repository("LongtimeDatabase")
 public class VirtualFilePostgres implements IVirtualFileRepository<Map<String,String>>{
   final BiFunction<String, MapSqlParameterSource, List<Map<String, String>>> biQuery;
   final Function<String, List<Map<String, String>>> oneQuery;
